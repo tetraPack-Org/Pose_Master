@@ -1,9 +1,238 @@
+// import React, { useState, useEffect } from "react";
+// import {
+//   Box,
+//   Container,
+//   AppBar,
+//   Toolbar,
+//   Typography,
+//   Button,
+// } from "@mui/material";
+// import axios from "axios";
+// import { BrowserRouter, Routes, Route, useNavigate } from "react-router-dom";
+// import { useAuth } from "./hooks/useAuth";
+// import { useSocket } from "./hooks/useSocket";
+// import { useProfile } from "./hooks/useProfile";
+// import { Room } from "./components/Room";
+// import AppTheme from "./shared-theme/AppTheme";
+// import LandingPage from "./pages/landing_page/LandingPage";
+// import EnhancedMentorForm from "./components/EnhancedMentorForm";
+// import { Gallery } from "./components/Gallery";
+// import SignIn from "./pages/signin/SignIn";
+// import SignUp from "./pages/signup/SignUp";
+// import Profile from "./components/Profile";
+
+// function AppContent() {
+//   const navigate = useNavigate();
+
+//   // State Management
+//   const [room, setRoom] = useState("");
+//   const [inRoom, setInRoom] = useState(false);
+//   const [message, setMessage] = useState("");
+//   const [messages, setMessages] = useState([]);
+//   const [currentIndex, setCurrentIndex] = useState(0);
+//   const [gallery, setGallery] = useState([]);
+//   const [showHome, setShowHome] = useState(false);
+
+//   // Custom Hooks
+//   const {
+//     user,
+//     role,
+//     authMode,
+//     setAuthMode,
+//     handleSignup,
+//     handleLogin,
+//     handleLogout,
+//   } = useAuth();
+//   const { profile, setProfile, updateProfile } = useProfile(user);
+//   const socket = useSocket(setMessages, setGallery, setCurrentIndex);
+
+//   // Gallery Management
+//   const fetchGallery = async () => {
+//     if (!room || !user) return;
+//     try {
+//       const params =
+//         role === "mentor"
+//           ? { roomId: room, mentor: user.userId }
+//           : { roomId: room };
+
+//       console.log(`Fetching gallery as ${role} with params:`, params);
+//       const res = await axios.get(
+//         "http://localhost:4000/api/upload/mentorforms/get",
+//         {
+//           params,
+//           withCredentials: true,
+//         }
+//       );
+//       console.log(`${role} received gallery data:`, res.data);
+//       setGallery(res.data);
+//       return res.data;
+//     } catch (error) {
+//       console.error("Error fetching gallery", error);
+//     }
+//   };
+
+//   useEffect(() => {
+//     if (inRoom) {
+//       fetchGallery();
+//     }
+//   }, [role, inRoom, room]);
+
+//   // Room Management
+//   const createRoom = () => {
+//     if (role !== "mentor") {
+//       alert("Only mentors can create rooms.");
+//       return;
+//     }
+//     socket.emit("createRoom", room);
+//     setInRoom(true);
+//   };
+
+//   const joinRoom = () => {
+//     socket.emit("joinRoom", room, async (currentImgIndex) => {
+//       if (currentImgIndex === null) {
+//         alert("Room doesn't exist");
+//         return;
+//       }
+//       setInRoom(true);
+//       setCurrentIndex(currentImgIndex);
+//       await fetchGallery();
+//     });
+//   };
+
+//   // Message Management
+//   const sendMessage = () => {
+//     if (!message.trim()) return;
+//     const msgObj = { sender: user.username, text: message };
+//     socket.emit("message", msgObj);
+//     setMessages((prev) => [...prev, msgObj]);
+//     setMessage("");
+//   };
+
+//   // Image Navigation
+//   const nextImage = () => {
+//     if (role === "mentor" && currentIndex < gallery.length - 1) {
+//       const newIndex = currentIndex + 1;
+//       setCurrentIndex(newIndex);
+//       socket.emit("updateImage", newIndex, room);
+//     }
+//   };
+
+//   const prevImage = () => {
+//     if (role === "mentor" && currentIndex > 0) {
+//       const newIndex = currentIndex - 1;
+//       setCurrentIndex(newIndex);
+//       socket.emit("updateImage", newIndex, room);
+//     }
+//   };
+
+//   // Gallery Management
+//   const refreshGallery = async (updatedGalleryData = null) => {
+//     if (updatedGalleryData) {
+//       setGallery(updatedGalleryData);
+//       socket.emit("galleryUpdated", updatedGalleryData, room);
+//     } else {
+//       const newData = await fetchGallery();
+//       if (newData) {
+//         socket.emit("galleryUpdated", newData, room);
+//       }
+//     }
+//   };
+
+//   return (
+//     <Box sx={{ flexGrow: 1 }}>
+//       {!user ? (
+//         authMode === "signin" ? (
+//           <SignIn
+//             onLogin={handleLogin}
+//             onToggleToSignup={() => setAuthMode("signup")}
+//           />
+//         ) : (
+//           <SignUp
+//             onSignup={handleSignup}
+//             onToggleToLogin={() => setAuthMode("signin")}
+//           />
+//         )
+//       ) : (
+//         <>
+//           <AppBar position="static">
+//             <Toolbar>
+//               <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
+//                 Yoga Posture Detector - {user.username} ({role})
+//               </Typography>
+//               <Button
+//                 color="inherit"
+//                 onClick={() => navigate("/profile")}
+//                 sx={{ mr: 2 }}
+//               >
+//                 Update Profile
+//               </Button>
+//               <Button color="inherit" onClick={handleLogout}>
+//                 Logout
+//               </Button>
+//             </Toolbar>
+//           </AppBar>
+
+//           <Routes>
+//             <Route
+//               path="/"
+//               element={
+//                 <Container sx={{ mt: 4 }}>
+//                   <Button onClick={() => setShowHome(true)}>Home Page</Button>
+//                   <Room
+//                     room={room}
+//                     setRoom={setRoom}
+//                     role={role}
+//                     createRoom={createRoom}
+//                     joinRoom={joinRoom}
+//                   />
+//                 </Container>
+//               }
+//             />
+//             <Route
+//               path="/profile"
+//               element={
+//                 <Profile
+//                   profile={profile}
+//                   setProfile={setProfile}
+//                   updateProfile={updateProfile}
+//                   navigate={navigate}
+//                 />
+//               }
+//             />
+//           </Routes>
+//         </>
+//       )}
+
+//       {showHome && (
+//         <LandingPage
+//           onLogin={handleLogin}
+//           onSignup={handleSignup}
+//           onToggleToSignup={() => setAuthMode("signup")}
+//         />
+//       )}
+//     </Box>
+//   );
+// }
+
+// function App() {
+//   return (
+//     <BrowserRouter>
+//       <AppTheme>
+//         <AppContent />
+//       </AppTheme>
+//     </BrowserRouter>
+//   );
+// }
+
+// export default App;
+
 import React, { useState, useEffect } from "react";
 import { io } from "socket.io-client";
 import axios from "axios";
-import MentorForm from "./components/MentorForm";
+import EnhancedMentorForm from "./components/EnhancedMentorForm";
 import SignUp from "./pages/signup/SignUp";
 import SignIn from "./pages/signin/SignIn";
+import DirectPoseAnalysis from "./components/DirectPoseAnalysis";
 
 // Material UI imports
 import Box from "@mui/material/Box";
@@ -22,6 +251,7 @@ import ArrowForwardIcon from "@mui/icons-material/ArrowForward";
 import SendIcon from "@mui/icons-material/Send";
 import InputAdornment from "@mui/material/InputAdornment";
 import AppTheme from "./shared-theme/AppTheme";
+import LandingPage from "./pages/landing_page/LandingPage";
 
 const socket = io("http://localhost:4000", { withCredentials: true });
 
@@ -36,6 +266,13 @@ function App() {
   const [gallery, setGallery] = useState([]);
   const [authMode, setAuthMode] = useState("signin"); // 'signin' or 'signup'
   const [profile, setProfile] = useState({});
+  const [showHome, setShowHome] = useState(false);
+
+  // const navigate = useNavigate();
+
+  const buttonHandler = () => {
+    setShowHome(true);
+  };
 
   const fetchGallery = async () => {
     if (!room || !user) return;
@@ -65,45 +302,46 @@ function App() {
     if (inRoom) {
       fetchGallery();
     }
+    return;
   }, [role, inRoom, room]);
 
-  useEffect(() => {
-    const handleGalleryUpdated = (updatedGallery) => {
-      console.log("Received gallery update:", updatedGallery);
-      console.log(
-        "Gallery length:",
-        updatedGallery ? updatedGallery.length : 0
-      );
-      console.log(
-        "Gallery contents:",
-        JSON.stringify(updatedGallery).substring(0, 200) + "..."
-      );
-      setGallery(updatedGallery);
-    };
+  // useEffect(() => {
+  //   const handleGalleryUpdated = (updatedGallery) => {
+  //     console.log("Received gallery update:", updatedGallery);
+  //     console.log(
+  //       "Gallery length:",
+  //       updatedGallery ? updatedGallery.length : 0
+  //     );
+  //     console.log(
+  //       "Gallery contents:",
+  //       JSON.stringify(updatedGallery).substring(0, 200) + "..."
+  //     );
+  //     setGallery(updatedGallery);
+  //   };
 
-    const handleUpdateImage = (index) => {
-      console.log("Received updateImage event:", index);
-      setCurrentIndex(index);
-    };
+  //   const handleUpdateImage = (index) => {
+  //     console.log("Received updateImage event:", index);
+  //     setCurrentIndex(index);
+  //   };
 
-    socket.on("galleryUpdated", handleGalleryUpdated);
-    socket.on("updateImage", handleUpdateImage);
+  //   socket.on("galleryUpdated", handleGalleryUpdated);
+  //   socket.on("updateImage", handleUpdateImage);
 
-    return () => {
-      socket.off("galleryUpdated", handleGalleryUpdated);
-      socket.off("updateImage", handleUpdateImage);
-    };
-  }, []);
+  //   return () => {
+  //     socket.off("galleryUpdated", handleGalleryUpdated);
+  //     socket.off("updateImage", handleUpdateImage);
+  //   };
+  // }, []);
 
-  useEffect(() => {
-    socket.on("message", (msgObj) => {
-      setMessages((prev) => [...prev, msgObj]);
-    });
+  // useEffect(() => {
+  //   socket.on("message", (msgObj) => {
+  //     setMessages((prev) => [...prev, msgObj]);
+  //   });
 
-    return () => {
-      socket.off("message");
-    };
-  }, []);
+  //   return () => {
+  //     socket.off("message");
+  //   };
+  // }, []);
 
   useEffect(() => {
     async function fetchUser() {
@@ -189,7 +427,7 @@ function App() {
 
   const updateProfile = async () => {
     try {
-      const updatedProfile = {...profile, userId: user.userId };
+      const updatedProfile = { ...profile, userId: user.userId };
       const res = await axios.put(
         "http://localhost:4000/api/auth/profile",
         updatedProfile,
@@ -297,7 +535,7 @@ function App() {
                 </Button>
               </Toolbar>
             </AppBar>
-
+            <Button onClick={buttonHandler}>Home Page</Button>
             <Container sx={{ mt: 4 }}>
               {/* Profile Update Section */}
               <Card sx={{ mb: 3 }}>
@@ -318,7 +556,7 @@ function App() {
                         }
                       />
                     </Grid>
-                    
+
                     <Grid item xs={12} sm={6}>
                       <TextField
                         fullWidth
@@ -357,7 +595,6 @@ function App() {
                           native: true,
                         }}
                       >
-                       
                         <option value="male">Male</option>
                         <option value="female">Female</option>
                       </TextField>
@@ -380,7 +617,6 @@ function App() {
                           native: true,
                         }}
                       >
-                        
                         <option value="lightly active">Lightly Active</option>
                         <option value="Sedentary">Sedentary</option>
                         <option value="Moderately active">
@@ -388,30 +624,29 @@ function App() {
                         </option>
                         <option value="very active">Very Active</option>
                       </TextField>
-                      </Grid>
-                      <Grid item xs={12} sm={6}>
-                        <TextField
-                          select
-                          fullWidth
-                          label="Goal"
-                          variant="outlined"
-                          value={profile.goal || ""}
-                          onChange={(e) =>
-                            setProfile({ ...profile, goal: e.target.value })
-                          }
-                          SelectProps={{
-                            native: true,
-                          }}
-                        >
-                         
-                          <option value="weight Loss">Weight Loss</option>
-                          <option value="maintenance">Maintenance</option>
-                          <option value="muscle Gain">Muscle Gain</option>
-                          <option value="Improve Health">Improve Health</option>
-                        </TextField>
-                      </Grid>
+                    </Grid>
+                    <Grid item xs={12} sm={6}>
+                      <TextField
+                        select
+                        fullWidth
+                        label="Goal"
+                        variant="outlined"
+                        value={profile.goal || ""}
+                        onChange={(e) =>
+                          setProfile({ ...profile, goal: e.target.value })
+                        }
+                        SelectProps={{
+                          native: true,
+                        }}
+                      >
+                        <option value="weight Loss">Weight Loss</option>
+                        <option value="maintenance">Maintenance</option>
+                        <option value="muscle Gain">Muscle Gain</option>
+                        <option value="Improve Health">Improve Health</option>
+                      </TextField>
+                    </Grid>
 
-                     < Grid item xs={12} sm={6}>
+                    <Grid item xs={12} sm={6}>
                       <TextField
                         select
                         fullWidth
@@ -425,7 +660,6 @@ function App() {
                           native: true,
                         }}
                       >
-                      
                         <option value="Vegeterian">Vegetarian</option>
                         <option value="Non-vegeterian">Non-Vegetarian</option>
                         <option value="Gluten Free">Gluten Free</option>
@@ -474,7 +708,6 @@ function App() {
                           native: true,
                         }}
                       >
-                        
                         <option value="Vegetarian">Vegetarian</option>
                         <option value="Non-Vegetarian">Non-Vegetarian</option>
                         <option value="Gluten Free">Gluten Free</option>
@@ -499,7 +732,6 @@ function App() {
                           native: true,
                         }}
                       >
-                       
                         <option value="low">Low</option>
                         <option value="medium">Medium</option>
                         <option value="high">High</option>
@@ -666,7 +898,7 @@ function App() {
                                 sx={{
                                   display: "flex",
                                   flexDirection: "column",
-                                  alignItems: "center",
+                                  gap: 2,
                                 }}
                               >
                                 <Box
@@ -682,6 +914,14 @@ function App() {
                                 <Typography variant="body1" sx={{ mt: 2 }}>
                                   {gallery[currentIndex]?.text}
                                 </Typography>
+                                <Box sx={{ mt: 3 }}>
+                                  <Typography variant="h6" gutterBottom>
+                                    Pose Analysis
+                                  </Typography>
+                                  <DirectPoseAnalysis
+                                    imageUrl={gallery[currentIndex]?.image}
+                                  />
+                                </Box>
                               </Box>
                               {role === "mentor" && (
                                 <IconButton
@@ -705,7 +945,7 @@ function App() {
                           <Typography variant="h6" gutterBottom>
                             Upload Yoga Posture
                           </Typography>
-                          <MentorForm
+                          <EnhancedMentorForm
                             roomId={room}
                             mentorId={user.userId}
                             onSubmission={refreshGallery}
@@ -719,6 +959,14 @@ function App() {
               )}
             </Container>
           </>
+        )}
+
+        {showHome && (
+          <LandingPage
+            onLogin={handleLogin}
+            onSignup={handleSignup}
+            onToggleToSignup={toggleAuthMode}
+          />
         )}
       </Box>
     </AppTheme>

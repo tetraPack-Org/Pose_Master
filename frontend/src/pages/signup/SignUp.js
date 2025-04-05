@@ -121,7 +121,6 @@ export default function SignUp({ onSignup, onToggleToLogin, ...props }) {
             <ColorModeSelect sx={{ position: 'fixed', top: '1rem', right: '1rem' }} />
             <SignUpContainer direction="column" justifyContent="space-between">
                 <Card variant="outlined">
-                    <SitemarkIcon />
                     <Typography
                         component="h1"
                         variant="h4"

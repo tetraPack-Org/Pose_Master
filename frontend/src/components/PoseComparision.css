@@ -1,0 +1,57 @@
+.pose-comparison {
+    text-align: center;
+  }
+  
+  .description {
+    margin-bottom: 20px;
+  }
+  
+  .step-container {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 20px;
+  }
+  
+  .step {
+    margin: 0 20px;
+  }
+  
+  .step-number {
+    font-size: 24px;
+    font-weight: bold;
+    margin-bottom: 10px;
+  }
+  
+  .image-navigation {
+    text-align: left;
+  }
+  
+  .navigation-controls {
+    display: flex;
+    align-items: center;
+    margin-top: 10px;
+  }
+  
+  .navigation-controls button {
+    margin-right: 10px;
+  }
+  
+  .presentation-button.active {
+    background-color: #4caf50;
+    color: white;
+  }
+  
+  .presentation-controls {
+    margin-top: 10px;
+  }
+  
+  .reference-image-container {
+    position: relative;
+  }
+  
+  .reference-image {
+    width: 100%;
+    max-width: 600px;
+    margin: 0 auto;
+    display: block;
+  }

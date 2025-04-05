@@ -4,6 +4,7 @@ import axios from "axios";
 import MentorForm from "./components/MentorForm";
 import SignUp from "./pages/signup/SignUp";
 import SignIn from "./pages/signin/SignIn";
+import PoseComparison from "./components/PoseComparision";
 
 // Material UI imports
 import Box from "@mui/material/Box";
@@ -387,66 +388,9 @@ function App() {
                     <Card>
                       <CardContent>
                         <Typography variant="h6" gutterBottom>
-                          Image Gallery
+                          Pose Comparison
                         </Typography>
-                        {gallery.length > 0 ? (
-                          <Box
-                            sx={{
-                              display: "flex",
-                              flexDirection: "column",
-                              alignItems: "center",
-                            }}
-                          >
-                            <Box
-                              sx={{
-                                display: "flex",
-                                alignItems: "center",
-                                width: "100%",
-                                justifyContent: "space-between",
-                              }}
-                            >
-                              {role === "mentor" && (
-                                <IconButton
-                                  onClick={prevImage}
-                                  disabled={currentIndex <= 0}
-                                >
-                                  <ArrowBackIcon />
-                                </IconButton>
-                              )}
-                              <Box
-                                sx={{
-                                  display: "flex",
-                                  flexDirection: "column",
-                                  alignItems: "center",
-                                }}
-                              >
-                                <Box
-                                  component="img"
-                                  src={gallery[currentIndex]?.image}
-                                  alt={`yoga-${currentIndex + 1}`}
-                                  sx={{
-                                    maxWidth: "100%",
-                                    maxHeight: 300,
-                                    objectFit: "contain",
-                                  }}
-                                />
-                                <Typography variant="body1" sx={{ mt: 2 }}>
-                                  {gallery[currentIndex]?.text}
-                                </Typography>
-                              </Box>
-                              {role === "mentor" && (
-                                <IconButton
-                                  onClick={nextImage}
-                                  disabled={currentIndex >= gallery.length - 1}
-                                >
-                                  <ArrowForwardIcon />
-                                </IconButton>
-                              )}
-                            </Box>
-                          </Box>
-                        ) : (
-                          <Typography>No images to display.</Typography>
-                        )}
+                        <PoseComparison gallery={gallery} />
                       </CardContent>
                     </Card>
 

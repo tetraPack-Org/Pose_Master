@@ -281,6 +281,7 @@ function EnhancedMentorForm({ roomId, mentorId, onSubmission, socket }) {
                       <ReactQuill
                         value={content.text}
                         onChange={(value) => handleTextChange(index, value)}
+                        
                         placeholder="Describe the yoga pose and provide instructions..."
                       />
                     </Box>

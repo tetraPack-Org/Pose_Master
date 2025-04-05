@@ -1,230 +1,4 @@
-// import React, { useState, useEffect } from "react";
-// import {
-//   Box,
-//   Container,
-//   AppBar,
-//   Toolbar,
-//   Typography,
-//   Button,
-// } from "@mui/material";
-// import axios from "axios";
-// import { BrowserRouter, Routes, Route, useNavigate } from "react-router-dom";
-// import { useAuth } from "./hooks/useAuth";
-// import { useSocket } from "./hooks/useSocket";
-// import { useProfile } from "./hooks/useProfile";
-// import { Room } from "./components/Room";
-// import AppTheme from "./shared-theme/AppTheme";
-// import LandingPage from "./pages/landing_page/LandingPage";
-// import EnhancedMentorForm from "./components/EnhancedMentorForm";
-// import { Gallery } from "./components/Gallery";
-// import SignIn from "./pages/signin/SignIn";
-// import SignUp from "./pages/signup/SignUp";
-// import Profile from "./components/Profile";
 
-// function AppContent() {
-//   const navigate = useNavigate();
-
-//   // State Management
-//   const [room, setRoom] = useState("");
-//   const [inRoom, setInRoom] = useState(false);
-//   const [message, setMessage] = useState("");
-//   const [messages, setMessages] = useState([]);
-//   const [currentIndex, setCurrentIndex] = useState(0);
-//   const [gallery, setGallery] = useState([]);
-//   const [showHome, setShowHome] = useState(false);
-
-//   // Custom Hooks
-//   const {
-//     user,
-//     role,
-//     authMode,
-//     setAuthMode,
-//     handleSignup,
-//     handleLogin,
-//     handleLogout,
-//   } = useAuth();
-//   const { profile, setProfile, updateProfile } = useProfile(user);
-//   const socket = useSocket(setMessages, setGallery, setCurrentIndex);
-
-//   // Gallery Management
-//   const fetchGallery = async () => {
-//     if (!room || !user) return;
-//     try {
-//       const params =
-//         role === "mentor"
-//           ? { roomId: room, mentor: user.userId }
-//           : { roomId: room };
-
-//       console.log(`Fetching gallery as ${role} with params:`, params);
-//       const res = await axios.get(
-//         "http://localhost:4000/api/upload/mentorforms/get",
-//         {
-//           params,
-//           withCredentials: true,
-//         }
-//       );
-//       console.log(`${role} received gallery data:`, res.data);
-//       setGallery(res.data);
-//       return res.data;
-//     } catch (error) {
-//       console.error("Error fetching gallery", error);
-//     }
-//   };
-
-//   useEffect(() => {
-//     if (inRoom) {
-//       fetchGallery();
-//     }
-//   }, [role, inRoom, room]);
-
-//   // Room Management
-//   const createRoom = () => {
-//     if (role !== "mentor") {
-//       alert("Only mentors can create rooms.");
-//       return;
-//     }
-//     socket.emit("createRoom", room);
-//     setInRoom(true);
-//   };
-
-//   const joinRoom = () => {
-//     socket.emit("joinRoom", room, async (currentImgIndex) => {
-//       if (currentImgIndex === null) {
-//         alert("Room doesn't exist");
-//         return;
-//       }
-//       setInRoom(true);
-//       setCurrentIndex(currentImgIndex);
-//       await fetchGallery();
-//     });
-//   };
-
-//   // Message Management
-//   const sendMessage = () => {
-//     if (!message.trim()) return;
-//     const msgObj = { sender: user.username, text: message };
-//     socket.emit("message", msgObj);
-//     setMessages((prev) => [...prev, msgObj]);
-//     setMessage("");
-//   };
-
-//   // Image Navigation
-//   const nextImage = () => {
-//     if (role === "mentor" && currentIndex < gallery.length - 1) {
-//       const newIndex = currentIndex + 1;
-//       setCurrentIndex(newIndex);
-//       socket.emit("updateImage", newIndex, room);
-//     }
-//   };
-
-//   const prevImage = () => {
-//     if (role === "mentor" && currentIndex > 0) {
-//       const newIndex = currentIndex - 1;
-//       setCurrentIndex(newIndex);
-//       socket.emit("updateImage", newIndex, room);
-//     }
-//   };
-
-//   // Gallery Management
-//   const refreshGallery = async (updatedGalleryData = null) => {
-//     if (updatedGalleryData) {
-//       setGallery(updatedGalleryData);
-//       socket.emit("galleryUpdated", updatedGalleryData, room);
-//     } else {
-//       const newData = await fetchGallery();
-//       if (newData) {
-//         socket.emit("galleryUpdated", newData, room);
-//       }
-//     }
-//   };
-
-//   return (
-//     <Box sx={{ flexGrow: 1 }}>
-//       {!user ? (
-//         authMode === "signin" ? (
-//           <SignIn
-//             onLogin={handleLogin}
-//             onToggleToSignup={() => setAuthMode("signup")}
-//           />
-//         ) : (
-//           <SignUp
-//             onSignup={handleSignup}
-//             onToggleToLogin={() => setAuthMode("signin")}
-//           />
-//         )
-//       ) : (
-//         <>
-//           <AppBar position="static">
-//             <Toolbar>
-//               <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
-//                 Yoga Posture Detector - {user.username} ({role})
-//               </Typography>
-//               <Button
-//                 color="inherit"
-//                 onClick={() => navigate("/profile")}
-//                 sx={{ mr: 2 }}
-//               >
-//                 Update Profile
-//               </Button>
-//               <Button color="inherit" onClick={handleLogout}>
-//                 Logout
-//               </Button>
-//             </Toolbar>
-//           </AppBar>
-
-//           <Routes>
-//             <Route
-//               path="/"
-//               element={
-//                 <Container sx={{ mt: 4 }}>
-//                   <Button onClick={() => setShowHome(true)}>Home Page</Button>
-//                   <Room
-//                     room={room}
-//                     setRoom={setRoom}
-//                     role={role}
-//                     createRoom={createRoom}
-//                     joinRoom={joinRoom}
-//                   />
-//                 </Container>
-//               }
-//             />
-//             <Route
-//               path="/profile"
-//               element={
-//                 <Profile
-//                   profile={profile}
-//                   setProfile={setProfile}
-//                   updateProfile={updateProfile}
-//                   navigate={navigate}
-//                 />
-//               }
-//             />
-//           </Routes>
-//         </>
-//       )}
-
-//       {showHome && (
-//         <LandingPage
-//           onLogin={handleLogin}
-//           onSignup={handleSignup}
-//           onToggleToSignup={() => setAuthMode("signup")}
-//         />
-//       )}
-//     </Box>
-//   );
-// }
-
-// function App() {
-//   return (
-//     <BrowserRouter>
-//       <AppTheme>
-//         <AppContent />
-//       </AppTheme>
-//     </BrowserRouter>
-//   );
-// }
-
-// export default App;
 
 import React, { useState, useEffect } from "react";
 import { io } from "socket.io-client";
@@ -252,6 +26,9 @@ import SendIcon from "@mui/icons-material/Send";
 import InputAdornment from "@mui/material/InputAdornment";
 import AppTheme from "./shared-theme/AppTheme";
 import LandingPage from "./pages/landing_page/LandingPage";
+import LinearProgress from "@mui/material/LinearProgress";
+import Divider from "@mui/material/Divider";
+import ReactMarkdown from "react-markdown";
 
 const socket = io("http://localhost:4000", { withCredentials: true });
 
@@ -267,6 +44,10 @@ function App() {
   const [authMode, setAuthMode] = useState("signin"); // 'signin' or 'signup'
   const [profile, setProfile] = useState({});
   const [showHome, setShowHome] = useState(false);
+  // Add this with other state declarations
+  const [achievedStudents, setAchievedStudents] = useState(new Set());
+  const [userAchievements, setUserAchievements] = useState({});
+  const [totalAchievements, setTotalAchievements] = useState(0);
 
   // const navigate = useNavigate();
 
@@ -298,6 +79,34 @@ function App() {
     }
   };
 
+  useEffect(() => {
+    console.log("Achieved students:", achievedStudents);
+  }, [achievedStudents]);
+
+  useEffect(() => {
+    socket.on("poseAchieved", (data) => {
+      console.log("Received pose achievement:", data);
+      if (role === "mentor") {
+        setAchievedStudents((prev) => {
+          const newSet = new Set(prev);
+          newSet.add(data.userId);
+          return newSet;
+        });
+      }
+      // Track individual user achievements
+      setUserAchievements((prev) => ({
+        ...prev,
+        [data.userId]: (prev[data.userId] || 0) + 1,
+      }));
+      setTotalAchievements((prev) => prev + 1);
+    });
+
+    return () => {
+      socket.off("poseAchieved");
+    };
+  }, [role]);
+
+
   // Update the useEffect for socket events
   useEffect(() => {
     // Listen for gallery updates
@@ -313,24 +122,33 @@ function App() {
       setGallery(updatedGallery);
     });
 
-    // Listen for messages
-    socket.on("message", (msgObj) => {
-      setMessages((prev) => [...prev, msgObj]);
+    socket.on("poseAchieved", (data) => {
+      console.log("Received pose achievement:", data);
+      if (role === "mentor") {
+        setAchievedStudents((prev) => {
+          const newSet = new Set(prev);
+          newSet.add(data.userId);
+          return newSet;
+        });
+      }
     });
 
     return () => {
       socket.off("galleryUpdated");
       socket.off("updateImage");
       socket.off("message");
+      socket.off("poseAchieved");
     };
-  }, [currentIndex, gallery, messages]);
+  }, [currentIndex, gallery, messages, role, achievedStudents]);
 
+  // Update the nextImage and prevImage functions
+  // Update the nextImage and prevImage functions
   // Update the nextImage and prevImage functions
   const nextImage = () => {
     if (role === "mentor" && currentIndex < gallery.length - 1) {
       const newIndex = currentIndex + 1;
       setCurrentIndex(newIndex);
-      // Emit the update with room info
+      setAchievedStudents(new Set()); // Clear achieved students for new pose
       socket.emit("updateImage", { newIndex, room });
     }
   };
@@ -339,7 +157,7 @@ function App() {
     if (role === "mentor" && currentIndex > 0) {
       const newIndex = currentIndex - 1;
       setCurrentIndex(newIndex);
-      // Emit the update with room info
+      setAchievedStudents(new Set()); // Clear achieved students for new pose
       socket.emit("updateImage", { newIndex, room });
     }
   };
@@ -563,6 +381,46 @@ function App() {
               </Toolbar>
             </AppBar>
             <Button onClick={buttonHandler}>Home Page</Button>
+
+            {role === "mentor" && (
+              <Card sx={{ my: 2, bgcolor: "background.default" }}>
+                <CardContent>
+                  <Typography variant="h6" gutterBottom>
+                    Student Progress
+                  </Typography>
+                  <Box
+                    sx={{
+                      display: "flex",
+                      flexDirection: "column",
+                      gap: 2,
+                    }}
+                  >
+                    <Box
+                      sx={{
+                        display: "flex",
+                        alignItems: "center",
+                        gap: 2,
+                      }}
+                    >
+                      <Typography variant="body1">
+                        Students who achieved pose: {achievedStudents.size}
+                      </Typography>
+                      <Box sx={{ flexGrow: 1 }}>
+                        <LinearProgress
+                          variant="determinate"
+                          value={achievedStudents.size * 10}
+                          sx={{ height: 10, borderRadius: 1 }}
+                        />
+                      </Box>
+                    </Box>
+                    <Typography variant="body2" color="text.secondary">
+                      Students who completed the pose:{" "}
+                      {Array.from(achievedStudents).join(", ")}
+                    </Typography>
+                  </Box>
+                </CardContent>
+              </Card>
+            )}
             <Container sx={{ mt: 4 }}>
               {/* Profile Update Section */}
               <Card sx={{ mb: 3 }}>
@@ -938,17 +796,27 @@ function App() {
                                     objectFit: "contain",
                                   }}
                                 />
-                                <Typography variant="body1" sx={{ mt: 2 }}>
-                                  {gallery[currentIndex]?.text}
-                                </Typography>
-                                <Box sx={{ mt: 3 }}>
-                                  <Typography variant="h6" gutterBottom>
-                                    Pose Analysis
-                                  </Typography>
-                                  <DirectPoseAnalysis
-                                    imageUrl={gallery[currentIndex]?.image}
-                                  />
-                                </Box>
+
+                                <Box
+                                  dangerouslySetInnerHTML={{
+                                    __html: gallery[currentIndex]?.text,
+                                  }}
+                                  sx = {{
+                                    textAlign: "center",
+                                  }}
+                                />
+                                {role === "mentee" && (
+                                  <Box sx={{ mt: 3 }}>
+                                    <Typography variant="h6" gutterBottom>
+                                      Pose Analysis
+                                    </Typography>
+                                    <DirectPoseAnalysis
+                                      imageUrl={gallery[currentIndex]?.image}
+                                      room={room}
+                                      userId={user?.userId}
+                                    />
+                                  </Box>
+                                )}
                               </Box>
                               {role === "mentor" && (
                                 <IconButton
@@ -965,7 +833,6 @@ function App() {
                         )}
                       </CardContent>
                     </Card>
-
                     {role === "mentor" && gallery.length === 0 && (
                       <Card sx={{ mt: 3 }}>
                         <CardContent>

@@ -15,32 +15,30 @@ const app = express();
 app.use(express.json());
 app.use(cookieParser());
 app.use(
-    cors({
-        origin: "http://localhost:3000", // your frontend origin
-        credentials: true,
-    })
+  cors({
+    origin: "http://localhost:3000", // your frontend origin
+    credentials: true,
+  })
 );
-app.use(fileUpload({
+app.use(
+  fileUpload({
     useTempFiles: true,
-    tempFileDir: '/tmp/',
+    tempFileDir: "/tmp/",
     debug: true,
-    createParentPath:true,
-    limits:{fileSize: 5*1024*1024} // Enable debugging to see more information
-
-}));
-
-
+    createParentPath: true,
+    limits: { fileSize: 5 * 1024 * 1024 }, // Enable debugging to see more information
+  })
+);
 
 dbConnect();
 
 const server = http.createServer(app);
 const io = new Server(server, {
-    cors: {
-        origin: "http://localhost:3000",
-        methods: ["GET", "POST"],
-        credentials: true, 
-    },
-    
+  cors: {
+    origin: "http://localhost:3000",
+    methods: ["GET", "POST"],
+    credentials: true,
+  },
 });
 
 // Object to keep track of the current image index for each room
@@ -56,6 +54,11 @@ io.on("connection", (socket) => {
     socket.join(room);
     currentIndexByRoom[room] = 0;
     console.log(`Room ${room} created`);
+  });
+
+  socket.on("poseAchieved", ({ room, userId }) => {
+    console.log("Server received pose achievement:", { room, userId });
+    io.to(room).emit("poseAchieved", { userId });
   });
 
   socket.on("joinRoom", (room, callback) => {
@@ -97,5 +100,5 @@ io.on("connection", (socket) => {
 
 const PORT = process.env.PORT || 4000;
 server.listen(PORT, () => {
-    console.log(`Server running on port ${PORT}`);
+  console.log(`Server running on port ${PORT}`);
 });

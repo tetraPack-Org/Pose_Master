@@ -2,6 +2,7 @@ import React, { useState, useRef, useEffect, useCallback } from "react";
 import * as tf from "@tensorflow/tfjs";
 import * as poseDetection from "@tensorflow-models/pose-detection";
 import { calculateAngles } from "./angleCalculations";
+import { useSocket } from "../hooks/useSocket";
 
 const KEYPOINT_NAMES = {
   nose: "Nose",
@@ -29,7 +30,7 @@ const FEEDBACK_THRESHOLDS = {
   POOR: 30,
 };
 
-const DirectPoseAnalysis = ({ imageUrl }) => {
+const DirectPoseAnalysis = ({ imageUrl, room, userId }) => {
   // State management
   const [imageLoading, setImageLoading] = useState(false);
   const [imageError, setImageError] = useState(null);
@@ -41,6 +42,13 @@ const DirectPoseAnalysis = ({ imageUrl }) => {
   const [detector, setDetector] = useState(null);
   const [modelLoading, setModelLoading] = useState(true);
   const [poseFeedback, setPoseFeedback] = useState([]);
+
+  const [highSimilarityStartTime, setHighSimilarityStartTime] = useState(null);
+  const [hasAchievedPose, setHasAchievedPose] = useState(false);
+  const [userAchievements, setUserAchievements] = useState(0);
+
+
+  const socket = useSocket();
 
   // Refs
   const imageCanvasRef = useRef(null);
@@ -104,6 +112,17 @@ const DirectPoseAnalysis = ({ imageUrl }) => {
       };
     }
   };
+useEffect(() => {
+  if (hasAchievedPose) {
+    setUserAchievements((prev) => prev + 1);
+    // Store achievement in localStorage
+    const achievements = JSON.parse(
+      localStorage.getItem("poseAchievements") || "{}"
+    );
+    achievements[userId] = (achievements[userId] || 0) + 1;
+    localStorage.setItem("poseAchievements", JSON.stringify(achievements));
+  }
+}, [hasAchievedPose, userId]);
 
   // Model loading effect
   useEffect(() => {
@@ -209,137 +228,138 @@ const DirectPoseAnalysis = ({ imageUrl }) => {
   };
 
   // Update the detectPose function in startDetectionLoop
-  const detectPose = async () => {
-    try {
-      const video = videoRef.current;
-      const canvas = webcamCanvasRef.current;
-      const ctx = canvas.getContext("2d");
+  // Update the detectPose function
+  // const detectPose = async () => {
+  //   try {
+  //     const video = videoRef.current;
+  //     const canvas = webcamCanvasRef.current;
+  //     const ctx = canvas.getContext("2d");
 
-      // Clear and draw video frame
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-      ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+  //     ctx.clearRect(0, 0, canvas.width, canvas.height);
+  //     ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+  //     ctx.fillStyle = "rgba(0, 0, 0, 0.2)";
+  //     ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-      // Add semi-transparent overlay
-      ctx.fillStyle = "rgba(0, 0, 0, 0.2)";
-      ctx.fillRect(0, 0, canvas.width, canvas.height);
+  //     const poses = await detector.estimatePoses(video);
 
-      const poses = await detector.estimatePoses(video);
+  //     if (poses && poses.length > 0) {
+  //       const pose = poses[0];
+  //       const feedback = [];
 
-      if (poses && poses.length > 0) {
-        const pose = poses[0];
-        const feedback = [];
+  //       drawPose(ctx, pose, true);
 
-        // Draw pose with labels
-        drawPose(ctx, pose, true);
+  //       const normalizedKeypoints = pose.keypoints.map((kp) => ({
+  //         ...kp,
+  //         x: kp.x / canvas.width,
+  //         y: kp.y / canvas.height,
+  //       }));
 
-        // Calculate angles and similarity
-        const normalizedKeypoints = pose.keypoints.map((kp) => ({
-          ...kp,
-          x: kp.x / canvas.width,
-          y: kp.y / canvas.height,
-        }));
+  //       const currentAngles = calculateAngles(normalizedKeypoints);
 
-        const currentAngles = calculateAngles(normalizedKeypoints);
+  //       if (imagePoseData?.angles) {
+  //         let totalDiff = 0;
+  //         let countedAngles = 0;
 
-        if (imagePoseData?.angles) {
-          let totalDiff = 0;
-          let countedAngles = 0;
+  //         for (const joint in imagePoseData.angles) {
+  //           if (currentAngles[joint]) {
+  //             const diff = Math.abs(
+  //               imagePoseData.angles[joint] - currentAngles[joint]
+  //             );
+  //             totalDiff += diff;
+  //             countedAngles++;
 
-          // Draw feedback header
-          ctx.fillStyle = "rgba(0, 0, 0, 0.7)";
-          ctx.fillRect(10, 10, canvas.width - 20, 40);
+  //             if (diff > FEEDBACK_THRESHOLDS.MODERATE) {
+  //               feedback.push(getJointFeedback(joint, diff));
+  //             }
+  //           }
+  //         }
 
-          // Draw similarity score
-          const similarityText = `Similarity: ${similarity.toFixed(1)}%`;
-          ctx.font = "bold 24px Arial";
-          ctx.fillStyle =
-            similarity > 80
-              ? "#00FF00"
-              : similarity > 60
-              ? "#FFFF00"
-              : "#FF0000";
-          ctx.fillText(similarityText, 20, 38);
+  //         if (countedAngles > 0) {
+  //           const avgDiff = totalDiff / countedAngles;
+  //           const similarityScore = Math.max(0, 100 - avgDiff * 2.5);
+  //           setSimilarity(similarityScore);
 
-          // Process joint angles and draw feedback
-          for (const joint in imagePoseData.angles) {
-            if (currentAngles[joint]) {
-              const diff = Math.abs(
-                imagePoseData.angles[joint] - currentAngles[joint]
-              );
-              totalDiff += diff;
-              countedAngles++;
+  //           console.log(
+  //             "Current Similarity Score:",
+  //             similarityScore.toFixed(1) + "%"
+  //           );
 
-              const jointKeypoints = getKeypointsForJoint(
-                joint,
-                pose.keypoints
-              );
-              if (diff > FEEDBACK_THRESHOLDS.MODERATE) {
-                // Draw attention circle for joints needing adjustment
-                for (const kp of jointKeypoints) {
-                  if (kp.score > 0.3) {
-                    // Pulsing circle effect
-                    const radius = 12 + Math.sin(Date.now() / 200) * 4;
-                    ctx.beginPath();
-                    ctx.arc(kp.x, kp.y, radius, 0, 2 * Math.PI);
-                    ctx.strokeStyle = "rgba(255, 0, 0, 0.8)";
-                    ctx.lineWidth = 2;
-                    ctx.stroke();
-                  }
-                }
+  //           // Achievement tracking
+  //           if (similarityScore >= 82) {
+  //             // Changed threshold to 92%
+  //             if (!highSimilarityStartTime) {
+  //               console.log("Started holding pose...");
+  //               setHighSimilarityStartTime(Date.now());
+  //             } else {
+  //               const duration = (Date.now() - highSimilarityStartTime) / 1000;
+  //               console.log("Holding duration:", duration.toFixed(1) + "s");
 
-                // Add feedback
-                feedback.push(getJointFeedback(joint, diff));
-              }
-            }
-          }
+  //               // Draw hold duration
+  //               ctx.font = "24px Arial";
+  //               ctx.fillStyle = "#00FF00";
+  //               ctx.textAlign = "left";
+  //               ctx.fillText(`Holding: ${duration.toFixed(1)}s / 3.0s`, 20, 70);
 
-          // Draw feedback messages
-          if (feedback.length > 0) {
-            const feedbackY = 70;
-            ctx.font = "16px Arial";
-            feedback.forEach((item, index) => {
-              const y = feedbackY + index * 25;
-              const text = `${KEYPOINT_NAMES[item.joint]}: ${item.message}`;
+  //               if (duration >= 3 && !hasAchievedPose) {
+  //                 console.log("Pose achieved! Emitting to server...");
+  //                 setHasAchievedPose(true);
+  //                 socket.emit("poseAchieved", { room, userId });
 
-              // Draw feedback background
-              ctx.fillStyle = "rgba(0, 0, 0, 0.7)";
-              const textWidth = ctx.measureText(text).width;
-              ctx.fillRect(10, y - 20, textWidth + 20, 25);
+  //                 // Visual feedback for achievement
+  //                 ctx.fillStyle = "rgba(0, 255, 0, 0.3)";
+  //                 ctx.fillRect(0, 0, canvas.width, canvas.height);
+  //                 ctx.font = "36px Arial";
+  //                 ctx.fillStyle = "#00FF00";
+  //                 ctx.textAlign = "center";
+  //                 ctx.fillText(
+  //                   "Pose Achieved!",
+  //                   canvas.width / 2,
+  //                   canvas.height / 2
+  //                 );
+  //               }
+  //             }
+  //           } else {
+  //             if (highSimilarityStartTime) {
+  //               console.log(
+  //                 "Reset holding timer - similarity dropped below threshold"
+  //               );
+  //               setHighSimilarityStartTime(null);
+  //             }
+  //           }
 
-              // Draw feedback text
-              ctx.fillStyle =
-                item.severity === "success"
-                  ? "#00FF00"
-                  : item.severity === "warning"
-                  ? "#FFFF00"
-                  : "#FF0000";
-              ctx.fillText(text, 20, y);
-            });
-          }
+  //           // Draw similarity score
+  //           ctx.font = "24px Arial";
+  //           ctx.fillStyle =
+  //             similarityScore > 92
+  //               ? "#00FF00"
+  //               : similarityScore > 80
+  //               ? "#FFFF00"
+  //               : "#FF0000";
+  //           ctx.textAlign = "left";
+  //           ctx.fillText(`Similarity: ${similarityScore.toFixed(1)}%`, 20, 30);
+  //         }
+  //       }
 
-          // Update similarity score
-          if (countedAngles > 0) {
-            const avgDiff = totalDiff / countedAngles;
-            const similarityScore = Math.max(0, 100 - avgDiff * 2.5);
-            setSimilarity(similarityScore);
-            setPoseFeedback(feedback);
-          }
-        }
+  //       setWebcamPoseData({
+  //         angles: currentAngles,
+  //         keypoints: normalizedKeypoints,
+  //         feedback,
+  //       });
+  //     }
+  //   } catch (err) {
+  //     console.error("Error in pose detection loop:", err);
+  //   }
 
-        setWebcamPoseData({
-          angles: currentAngles,
-          keypoints: normalizedKeypoints,
-          feedback,
-        });
-      }
-    } catch (err) {
-      console.error("Error in pose detection loop:", err);
-    }
+  //   requestRef.current = requestAnimationFrame(detectPose);
+  // };
 
-    requestRef.current = requestAnimationFrame(detectPose);
-  };
+  useEffect(() => {
+    setHasAchievedPose(false);
+    setHighSimilarityStartTime(null);
+  }, [imageUrl]);
 
   // Webcam pose detection loop
+  // Remove the standalone detectPose function and update startDetectionLoop:
   const startDetectionLoop = useCallback(() => {
     if (
       !detector ||
@@ -349,14 +369,23 @@ const DirectPoseAnalysis = ({ imageUrl }) => {
     )
       return;
 
+    let animationFrameId = null;
+
     const detectPose = async () => {
       try {
+        cancelAnimationFrame(animationFrameId);
+        if (!isWebcamActive) {
+          return;
+        }
+
         const video = videoRef.current;
         const canvas = webcamCanvasRef.current;
         const ctx = canvas.getContext("2d");
 
         ctx.clearRect(0, 0, canvas.width, canvas.height);
         ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+        ctx.fillStyle = "rgba(0, 0, 0, 0.2)";
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
 
         const poses = await detector.estimatePoses(video);
 
@@ -364,10 +393,8 @@ const DirectPoseAnalysis = ({ imageUrl }) => {
           const pose = poses[0];
           const feedback = [];
 
-          // Draw pose with labels
           drawPose(ctx, pose, true);
 
-          // Calculate angles and similarity
           const normalizedKeypoints = pose.keypoints.map((kp) => ({
             ...kp,
             x: kp.x / canvas.width,
@@ -388,24 +415,8 @@ const DirectPoseAnalysis = ({ imageUrl }) => {
                 totalDiff += diff;
                 countedAngles++;
 
-                // Get feedback for this joint
-                const jointFeedback = getJointFeedback(joint, diff);
-                feedback.push(jointFeedback);
-
                 if (diff > FEEDBACK_THRESHOLDS.MODERATE) {
-                  const jointKeypoints = getKeypointsForJoint(
-                    joint,
-                    pose.keypoints
-                  );
-                  for (const kp of jointKeypoints) {
-                    if (kp.score > 0.3) {
-                      ctx.beginPath();
-                      ctx.arc(kp.x, kp.y, 8, 0, 2 * Math.PI);
-                      ctx.strokeStyle = "#FF0000";
-                      ctx.lineWidth = 3;
-                      ctx.stroke();
-                    }
-                  }
+                  feedback.push(getJointFeedback(joint, diff));
                 }
               }
             }
@@ -413,38 +424,76 @@ const DirectPoseAnalysis = ({ imageUrl }) => {
             if (countedAngles > 0) {
               const avgDiff = totalDiff / countedAngles;
               const similarityScore = Math.max(0, 100 - avgDiff * 2.5);
+
+              // Log similarity score
+              console.log(
+                "Current Similarity Score:",
+                similarityScore.toFixed(1) + "%"
+              );
               setSimilarity(similarityScore);
-              setPoseFeedback(feedback);
+
+              // Achievement tracking
+              if (similarityScore >= 92) {
+                if (!highSimilarityStartTime) {
+                  console.log("Started holding pose...");
+                  setHighSimilarityStartTime(Date.now());
+                } else {
+                  const duration =
+                    (Date.now() - highSimilarityStartTime) / 1000;
+                  console.log("Holding duration:", duration.toFixed(1) + "s");
+
+                  // Draw hold duration
+                  ctx.font = "24px Arial";
+                  ctx.fillStyle = "#00FF00";
+                  ctx.textAlign = "left";
+                  ctx.fillText(
+                    `Holding: ${duration.toFixed(1)}s / 3.0s`,
+                    20,
+                    70
+                  );
+
+                  if (duration >= 3 && !hasAchievedPose) {
+                    console.log("Pose achieved! Emitting to server...");
+                    setHasAchievedPose(true);
+                    socket.emit("poseAchieved", { room, userId });
+
+                    // Visual feedback for achievement
+                    ctx.fillStyle = "rgba(0, 255, 0, 0.3)";
+                    ctx.fillRect(0, 0, canvas.width, canvas.height);
+                    ctx.font = "36px Arial";
+                    ctx.fillStyle = "#00FF00";
+                    ctx.textAlign = "center";
+                    ctx.fillText(
+                      "Pose Achieved!",
+                      canvas.width / 2,
+                      canvas.height / 2
+                    );
+                    animationFrameId = requestAnimationFrame(detectPose);
+                  }
+                }
+              } else {
+                if (highSimilarityStartTime) {
+                  console.log(
+                    "Reset holding timer - similarity dropped below threshold"
+                  );
+                  setHighSimilarityStartTime(null);
+                }
+              }
 
               // Draw similarity score
               ctx.font = "24px Arial";
               ctx.fillStyle =
-                similarityScore > 80
+                similarityScore > 92
                   ? "#00FF00"
-                  : similarityScore > 60
+                  : similarityScore > 80
                   ? "#FFFF00"
                   : "#FF0000";
+              ctx.textAlign = "left";
               ctx.fillText(
                 `Similarity: ${similarityScore.toFixed(1)}%`,
-                10,
+                20,
                 30
               );
-
-              // Draw feedback messages
-              ctx.font = "16px Arial";
-              feedback.forEach((item, index) => {
-                ctx.fillStyle =
-                  item.severity === "success"
-                    ? "#00FF00"
-                    : item.severity === "warning"
-                    ? "#FFFF00"
-                    : "#FF0000";
-                ctx.fillText(
-                  `${KEYPOINT_NAMES[item.joint]}: ${item.message}`,
-                  10,
-                  60 + index * 25
-                );
-              });
             }
           }
 
@@ -453,16 +502,37 @@ const DirectPoseAnalysis = ({ imageUrl }) => {
             keypoints: normalizedKeypoints,
             feedback,
           });
+
+          animationFrameId = requestAnimationFrame(detectPose);
         }
+        // if (isWebcamActive) {
+        //   requestRef.current = requestAnimationFrame(detectPose);
+        // }
+        animationFrameId = requestAnimationFrame(detectPose);
       } catch (err) {
         console.error("Error in pose detection loop:", err);
+        if (isWebcamActive) {
+          animationFrameId = requestAnimationFrame(detectPose);
+        }
       }
-
-      requestRef.current = requestAnimationFrame(detectPose);
     };
 
     detectPose();
-  }, [detector, imagePoseData]);
+    return () => {
+      if (animationFrameId) {
+        cancelAnimationFrame(animationFrameId);
+      }
+    };
+  }, [
+    detector,
+    imagePoseData,
+    room,
+    userId,
+    socket,
+    hasAchievedPose,
+    highSimilarityStartTime,
+    isWebcamActive,
+  ]);
 
   // Image processing effect
   useEffect(() => {
@@ -550,12 +620,22 @@ const DirectPoseAnalysis = ({ imageUrl }) => {
 
           if (videoRef.current) {
             videoRef.current.srcObject = stream;
-            await videoRef.current.play();
+            // Wait for video to be loaded before accessing dimensions
+            await new Promise((resolve) => {
+              videoRef.current.onloadedmetadata = () => {
+                videoRef.current.play();
+                resolve();
+              };
+            });
 
-            webcamCanvasRef.current.width = videoRef.current.videoWidth;
-            webcamCanvasRef.current.height = videoRef.current.videoHeight;
-
-            startDetectionLoop();
+            // Now safe to access video dimensions
+            if (webcamCanvasRef.current) {
+              webcamCanvasRef.current.width =
+                videoRef.current.videoWidth || 640;
+              webcamCanvasRef.current.height =
+                videoRef.current.videoHeight || 480;
+              startDetectionLoop();
+            }
           }
         } catch (err) {
           console.error("Error accessing webcam:", err);
@@ -569,9 +649,6 @@ const DirectPoseAnalysis = ({ imageUrl }) => {
             .forEach((track) => track.stop());
           videoRef.current.srcObject = null;
         }
-        if (requestRef.current) {
-          cancelAnimationFrame(requestRef.current);
-        }
       }
     };
 
@@ -580,9 +657,11 @@ const DirectPoseAnalysis = ({ imageUrl }) => {
     return () => {
       if (videoRef.current?.srcObject) {
         videoRef.current.srcObject.getTracks().forEach((track) => track.stop());
+        videoRef.current.srcObject = null;
       }
       if (requestRef.current) {
         cancelAnimationFrame(requestRef.current);
+        requestRef.current = null;
       }
     };
   }, [isWebcamActive, detector, imagePoseData, startDetectionLoop]);
@@ -754,6 +833,17 @@ const DirectPoseAnalysis = ({ imageUrl }) => {
                       <p className="text-right mt-1 font-medium">
                         {similarity.toFixed(1)}%
                       </p>
+                      <div className="mt-4 p-2 bg-blue-100 text-blue-800 rounded">
+                        <p className="font-medium">
+                          Total Poses Achieved: {userAchievements}
+                        </p>
+                      </div>
+
+                      {hasAchievedPose && (
+                        <div className="mt-2 p-2 bg-green-100 text-green-800 rounded">
+                          ✓ Pose Successfully Achieved!
+                        </div>
+                      )}
                     </div>
                     {renderAngleData(webcamPoseData)}
                     {renderFeedback(poseFeedback)}

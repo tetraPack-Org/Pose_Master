@@ -1,40 +1,92 @@
 import MentorForm from "../models/MentorFromSchema.js";
+import { v2 as cloudinary } from 'cloudinary';
+import dotenv from 'dotenv';
+// Configure Cloudinary
+dotenv.config();
+
+cloudinary.config({
+    cloud_name: process.env.CLOUD_NAME,
+    api_key: process.env.API_KEY,
+    api_secret: process.env.API_SECRET
+});
 
 // Create a new Mentor Form
+
 export const createMentorForm = async (req, res) => {
     try {
-        // req.body now contains roomId, mentor, and the text fields for contents
         const { roomId, mentor } = req.body;
-        let { contents } = req.body;
+        console.log(`Mentor ID: ${mentor}`);
+        console.log(`Room ID: ${roomId}`);
+        const contentsArray = [];
 
-        // If contents is not sent as a JSON string, you may need to reconstruct it.
-        // If you sent it as structured field keys (contents[0][text], etc.),
-        // the body parser will not automatically group them into an array.
-        // One workaround is to have the frontend send contents as JSON.
-        if (typeof contents === 'string') {
-            contents = JSON.parse(contents);
-        }
+        console.log("Request files:", req.files);
+        console.log("Request body:", req.body);
 
-        // Additionally, process req.files if any file was uploaded:
-        // For example, if file.fieldname is like `contents[0][image]`
-        if (req.files && req.files.length > 0) {
-            req.files.forEach(file => {
-                // Extract the index from file.fieldname (adjust regex as needed)
-                const match = file.fieldname.match(/contents\[(\d+)\]\[image\]/);
-                if (match) {
-                    const index = parseInt(match[1], 10);
-                    if (!contents[index]) {
-                        contents[index] = { text: "" };
-                    }
-                    // Save the file path so that you can reference the uploaded file later
-                    contents[index].image = file.path;
+        // Parse the contents data from form-data
+        const contentIndices = new Set();
+
+        // Go through all body fields to identify content indices
+        Object.keys(req.body).forEach(key => {
+            const match = key.match(/contents\[(\d+)\]\[text\]/);
+            if (match) {
+                contentIndices.add(parseInt(match[1], 10));
+            }
+        });
+
+        // For each content index, process text and image
+        const uploadPromises = Array.from(contentIndices).map(async (index) => {
+            const textKey = `contents[${index}][text]`;
+            const imageKey = `contents[${index}][image]`;
+            const text = req.body[textKey];
+
+          
+            //Initialize content object with text
+            const contentItem = { text };
+
+            // If there's an image file, upload it to Cloudinary
+            if (req.files && req.files[imageKey]) {
+                const file = req.files[imageKey];
+
+                try {
+                    // Upload to Cloudinary
+                    const result = await new Promise((resolve, reject) => {
+                        cloudinary.uploader.upload(
+                            file.tempFilePath,
+                            { folder: process.env.FOLDER_NAME },
+                            (error, result) => {
+                                if (error) reject(error);
+                                else resolve(result);
+                            }
+                        );
+                    });
+
+                    // Store the secure URL in the content item
+                    contentItem.image = result.secure_url;
+                    console.log(`Uploaded image for index ${index}: ${result.secure_url}`);
+
+                } catch (uploadError) {
+                    console.error(`Failed to upload image for index ${index}:`, uploadError);
+                    // Skip this content item if image upload fails
+                    return null;
                 }
-            });
-        }
 
-        console.log("Mentor form data:", roomId, mentor, contents);
+            } else {
+                console.log(`No image file for index ${index}`);
+                return null; // Skip items without images   
+            }
+
+            // Return the completed content item
+            return contentItem;
+        });
+        // Wait for all uploads to complete and filter out any failed uploads (null values)
+        const contents = (await Promise.all(uploadPromises)).filter(item => item !== null);
+
+        console.log("Final contents to save:", contents);
+
+        // Create and save the mentor form
         const mentorForm = new MentorForm({ roomId, mentor, contents });
         await mentorForm.save();
+
         res.status(201).json({
             message: "Mentor form created successfully",
             mentorForm,
@@ -46,17 +98,28 @@ export const createMentorForm = async (req, res) => {
 };
 
 // Get a single Mentor Form by its ID
-export const getMentorFormById = async (req, res) => {
+export const getMentorFormByIdAndRoom = async (req, res) => {
     try {
-        const { id } = req.params;
-        const form = await MentorForm.findById(id);
-        if (!form) {
-            return res.status(404).json({ error: "Mentor form not found" });
+        const { roomId, mentor } = req.query;
+
+        let query = { roomId };
+        // If mentor ID is provided, add it to the query
+        if (mentor) {
+            query.mentor = mentor;
         }
-        res.status(200).json(form);
+
+        // Find forms that match the query
+        const forms = await MentorForm.find(query).sort({ createdAt: -1 });
+
+        if (forms.length === 0) {
+            return res.json([]);
+        }
+
+        // Return the form contents
+        res.json(forms[0].contents);
     } catch (error) {
-        console.error("Error fetching mentor form:", error);
-        res.status(500).json({ error: "Internal server error" });
+        console.error("Error fetching mentor forms:", error);
+        res.status(500).json({ message: "Server error" });
     }
 };
 

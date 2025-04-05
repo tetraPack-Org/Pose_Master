@@ -3,7 +3,7 @@ import ReactQuill from "react-quill";
 import "react-quill/dist/quill.snow.css";
 import axios from "axios";
 
-function MentorForm({ roomId, mentorId }) {
+function MentorForm({ roomId, mentorId, onSubmission, socket }) {
     const [contents, setContents] = useState([]);
     const [submitted, setSubmitted] = useState(false);
 
@@ -15,7 +15,6 @@ function MentorForm({ roomId, mentorId }) {
         const file = event.target.files[0];
         if (!file) return;
         const updatedContents = [...contents];
-        // Save both file and create a temporary URL for preview
         updatedContents[index].image = URL.createObjectURL(file);
         updatedContents[index].file = file;
         setContents(updatedContents);
@@ -45,17 +44,39 @@ function MentorForm({ roomId, mentorId }) {
                 formData.append(`contents[${index}][image]`, "");
             }
         });
-        for (let [key, value] of formData.entries()) {
-            console.log(key, value);
+        for(let pair of formData.entries()) {
+            console.log(`${pair[0]}: ${pair[1]}`);
         }
+
         try {
-            const response = await axios.post(
+            await axios.post(
                 "http://localhost:4000/api/upload/mentorforms",
-                formData
+                formData,
+                {
+                    headers: {
+                        'Content-Type': 'multipart/form-data',
+                    },
+                    withCredentials: true,
+                }
             );
-            // Clear the form by resetting the contents state
             setContents([]);
             setSubmitted(true);
+
+            const galleryRes = await axios.get("http://localhost:4000/api/upload/mentorforms/get", {
+                params: { roomId, mentor: mentorId },
+                withCredentials: true,
+            });
+            const updatedGallery = galleryRes.data;
+
+            // Emit the gallery update event with the updated gallery data and room ID.
+            if (onSubmission) onSubmission(updatedGallery);
+
+                        // In MentorForm.js (inside handleSubmit, after fetching updatedGallery):
+            if (socket) {
+                console.log("1 -> updated gallery is emitting");
+              socket.emit("galleryUpdated", updatedGallery, roomId);
+            }
+
         } catch (error) {
             console.error("Error submitting mentor form:", error);
         }

@@ -6,6 +6,7 @@ import dotenv from "dotenv";
 import dbConnect from "./config/dbConnect.js";
 import cookieParser from "cookie-parser";
 import authRoutes from "./routes/authRoutes.js";
+import fileUpload from "express-fileupload";
 import mentorFormRoutes from "./routes/mentorFormRoutes.js";
 
 dotenv.config();
@@ -18,9 +19,15 @@ app.use(
         credentials: true,
     })
 );
+app.use(fileUpload({
+    useTempFiles: true,
+    tempFileDir: '/tmp/',
+    debug: true // Enable debugging to see more information
+}));
+
 app.use(cookieParser());
 
-// dbConnect();
+dbConnect();
 
 const server = http.createServer(app);
 const io = new Server(server, {
@@ -43,37 +50,37 @@ io.on("connection", (socket) => {
 
     socket.on("createRoom", (room) => {
         socket.join(room);
-        // Initialize current index for this room
         currentIndexByRoom[room] = 0;
         console.log(`Room ${room} created`);
     });
 
     socket.on("joinRoom", (room, callback) => {
-        // Check if the room exists
         if (currentIndexByRoom[room] === undefined) {
             console.log(`Room ${room} does not exist`);
             return callback(null);
         }
         socket.join(room);
         console.log(`User joined room ${room}`);
-        // Immediately send the current index via the callback.
         callback(currentIndexByRoom[room]);
     });
 
     socket.on("message", (message) => {
-        // Broadcast message to everyone except the sender in the room(s)
         const rooms = Array.from(socket.rooms).filter((r) => r !== socket.id);
         rooms.forEach((room) => {
             socket.to(room).emit("message", message);
         });
     });
 
-    socket.on("updateImage", (newIndex) => {
-        const rooms = Array.from(socket.rooms).filter((r) => r !== socket.id);
-        rooms.forEach((room) => {
-            currentIndexByRoom[room] = newIndex;
-            socket.to(room).emit("updateImage", newIndex);
-        });
+    socket.on("galleryUpdated", (galleryData, room) => {
+        console.log("2 -> Gallery updated for room:", room);
+        io.in(room).emit("galleryUpdated", galleryData);
+    });
+
+    socket.on("updateImage", (index, room) => {
+        console.log("upateImage on backend -> 4");
+        // Update index for room and broadcast updateImage event.
+        currentIndexByRoom[room] = index;
+        io.in(room).emit("updateImage", index);
     });
 
     socket.on("disconnect", () => {

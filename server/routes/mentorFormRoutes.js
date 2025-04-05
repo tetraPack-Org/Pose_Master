@@ -1,8 +1,7 @@
 import express from "express";
-import upload from "../middlewares/upload.js";
 import {
   createMentorForm,
-  getMentorFormById,
+  getMentorFormByIdAndRoom,
   updateMentorForm,
   deleteMentorForm
 } from "../controllers/MentorFormHandler.js";
@@ -10,10 +9,10 @@ import {
 const router = express.Router();
 
 // Create a mentor form
-router.post("/", upload.any(), createMentorForm);
+router.post("/", createMentorForm);
 
 // Get a mentor form by its ID
-router.get("/:id", getMentorFormById);
+router.get("/get", getMentorFormByIdAndRoom);
 
 // Update a mentor form by its ID
 router.put("/:id", updateMentorForm);

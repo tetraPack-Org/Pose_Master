@@ -87,7 +87,7 @@ export const calculateAngles = (keypoints) => {
   }
   
   // Debug keypoints
-  console.log("Calculating angles for keypoints:", keypoints);
+  // console.log("Calculating angles for keypoints:", keypoints);
   
   const angles = {};
   
@@ -99,11 +99,11 @@ export const calculateAngles = (keypoints) => {
     const a = keypoints[aIdx];
     const b = keypoints[bIdx];
     const c = keypoints[cIdx];
-    console.log(`Keypoints for ${joint.name}:`, {
-      a: { x: a.x, y: a.y, score: a.score },
-      b: { x: b.x, y: b.y, score: b.score },
-      c: { x: c.x, y: c.y, score: c.score }
-    });
+    // console.log(`Keypoints for ${joint.name}:`, {
+    //   a: { x: a.x, y: a.y, score: a.score },
+    //   b: { x: b.x, y: b.y, score: b.score },
+    //   c: { x: c.x, y: c.y, score: c.score }
+    // });
     
     
     // Check if all required keypoints exist and have good confidence
@@ -114,13 +114,13 @@ export const calculateAngles = (keypoints) => {
       
       const angle = calculateAngle(a, b, c);
       angles[joint.name] = angle;
-      console.log(`Angle for ${joint.name}: ${angles[joint.name]}°`);
+      // console.log(`Angle for ${joint.name}: ${angles[joint.name]}°`);
     } else {
       console.warn(`Cannot calculate ${joint.name} angle - missing keypoints or low confidence`);
     }
   }
 
-  console.log("Calculated angles:", angles);
+  // console.log("Calculated angles:", angles);
   
   // Validate we have calculated at least some angles
   if (Object.keys(angles).length === 0) {

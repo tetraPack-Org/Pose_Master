@@ -298,6 +298,68 @@ function App() {
     }
   };
 
+  // Update the useEffect for socket events
+  useEffect(() => {
+    // Listen for gallery updates
+    socket.on("updateImage", (data) => {
+      console.log("Received updateImage event:", data);
+      if (data && typeof data.newIndex === "number") {
+        setCurrentIndex(data.newIndex);
+      }
+    });
+
+    socket.on("galleryUpdated", (updatedGallery) => {
+      console.log("Received gallery update:", updatedGallery);
+      setGallery(updatedGallery);
+    });
+
+    // Listen for messages
+    socket.on("message", (msgObj) => {
+      setMessages((prev) => [...prev, msgObj]);
+    });
+
+    return () => {
+      socket.off("galleryUpdated");
+      socket.off("updateImage");
+      socket.off("message");
+    };
+  }, [currentIndex, gallery, messages]);
+
+  // Update the nextImage and prevImage functions
+  const nextImage = () => {
+    if (role === "mentor" && currentIndex < gallery.length - 1) {
+      const newIndex = currentIndex + 1;
+      setCurrentIndex(newIndex);
+      // Emit the update with room info
+      socket.emit("updateImage", { newIndex, room });
+    }
+  };
+
+  const prevImage = () => {
+    if (role === "mentor" && currentIndex > 0) {
+      const newIndex = currentIndex - 1;
+      setCurrentIndex(newIndex);
+      // Emit the update with room info
+      socket.emit("updateImage", { newIndex, room });
+    }
+  };
+
+  // Update the refreshGallery function
+  const refreshGallery = async (updatedGalleryData = null) => {
+    if (role === "mentor") {
+      if (updatedGalleryData) {
+        setGallery(updatedGalleryData);
+        socket.emit("galleryUpdated", { gallery: updatedGalleryData, room });
+      } else {
+        const data = await fetchGallery();
+        if (data) {
+          setGallery(data);
+          socket.emit("galleryUpdated", { gallery: data, room });
+        }
+      }
+    }
+  };
+
   useEffect(() => {
     if (inRoom) {
       fetchGallery();
@@ -456,13 +518,11 @@ function App() {
         alert("Room does not exist");
         return;
       }
-      setCurrentIndex(currentImgIndex);
       setInRoom(true);
+      setCurrentIndex(currentImgIndex); // Set the current index from server
 
       const data = await fetchGallery();
-
       if (role === "mentor" && data && data.length > 0) {
-        console.log("Mentor emitting gallery on join:", data);
         socket.emit("galleryUpdated", data, room);
       }
     });
@@ -475,39 +535,6 @@ function App() {
     socket.emit("message", msgObj);
     setMessages((prev) => [...prev, msgObj]);
     setMessage("");
-  };
-
-  const nextImage = () => {
-    if (role === "mentor" && currentIndex < gallery.length - 1) {
-      const newIndex = currentIndex + 1;
-      setCurrentIndex(newIndex);
-      console.log("next image -> 3");
-      socket.emit("updateImage", newIndex, room);
-    }
-  };
-
-  const prevImage = () => {
-    if (role === "mentor" && currentIndex > 0) {
-      const newIndex = currentIndex - 1;
-      setCurrentIndex(newIndex);
-      console.log("prev image -> 3");
-      socket.emit("updateImage", newIndex, room);
-    }
-  };
-
-  const refreshGallery = async (updatedGalleryData = null) => {
-    if (role === "mentor") {
-      if (updatedGalleryData) {
-        setGallery(updatedGalleryData);
-        socket.emit("galleryUpdated", updatedGalleryData, room);
-      } else {
-        const data = await fetchGallery();
-        if (data) {
-          setGallery(data);
-          socket.emit("galleryUpdated", data, room);
-        }
-      }
-    }
   };
 
   const toggleAuthMode = () => {

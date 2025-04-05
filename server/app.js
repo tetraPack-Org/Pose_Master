@@ -50,46 +50,49 @@ app.use("/api/auth", authRoutes);
 app.use("/api/upload/mentorforms", mentorFormRoutes);
 
 io.on("connection", (socket) => {
-    console.log("Client connected", socket.id);
+  console.log("Client connected", socket.id);
 
-    socket.on("createRoom", (room) => {
-        socket.join(room);
-        currentIndexByRoom[room] = 0;
-        console.log(`Room ${room} created`);
-    });
+  socket.on("createRoom", (room) => {
+    socket.join(room);
+    currentIndexByRoom[room] = 0;
+    console.log(`Room ${room} created`);
+  });
 
-    socket.on("joinRoom", (room, callback) => {
-        if (currentIndexByRoom[room] === undefined) {
-            console.log(`Room ${room} does not exist`);
-            return callback(null);
-        }
-        socket.join(room);
-        console.log(`User joined room ${room}`);
-        callback(currentIndexByRoom[room]);
-    });
+  socket.on("joinRoom", (room, callback) => {
+    if (currentIndexByRoom[room] === undefined) {
+      console.log(`Room ${room} does not exist`);
+      return callback(null);
+    }
+    socket.join(room);
+    console.log(`User joined room ${room}`);
+    callback(currentIndexByRoom[room]);
+  });
 
-    socket.on("message", (message) => {
-        const rooms = Array.from(socket.rooms).filter((r) => r !== socket.id);
-        rooms.forEach((room) => {
-            socket.to(room).emit("message", message);
-        });
+  socket.on("message", (message) => {
+    const rooms = Array.from(socket.rooms).filter((r) => r !== socket.id);
+    rooms.forEach((room) => {
+      socket.to(room).emit("message", message);
     });
+  });
 
-    socket.on("galleryUpdated", (galleryData, room) => {
-        console.log("2 -> Gallery updated for room:", room);
-        io.in(room).emit("galleryUpdated", galleryData);
-    });
+  socket.on("galleryUpdated", (galleryData, room) => {
+    console.log("2 -> Gallery updated for room:", room);
+    io.in(room).emit("galleryUpdated", galleryData);
+  });
 
-    socket.on("updateImage", (index, room) => {
-        console.log("upateImage on backend -> 4");
-        // Update index for room and broadcast updateImage event.
-        currentIndexByRoom[room] = index;
-        io.in(room).emit("updateImage", index);
-    });
+  // Replace the existing updateImage handler
+  socket.on("updateImage", (data) => {
+    console.log("Received updateImage event on server:", data);
+    const { newIndex, room } = data;
+    // Update index for room
+    currentIndexByRoom[room] = newIndex;
+    // Broadcast to ALL clients in the room (including sender)
+    io.to(room).emit("updateImage", { newIndex });
+  });
 
-    socket.on("disconnect", () => {
-        console.log("Client disconnected");
-    });
+  socket.on("disconnect", () => {
+    console.log("Client disconnected");
+  });
 });
 
 const PORT = process.env.PORT || 4000;

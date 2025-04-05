@@ -186,22 +186,6 @@ export default function SignUp({ onSignup, onToggleToLogin, ...props }) {
                         <Typography sx={{ color: 'text.secondary' }}>or</Typography>
                     </Divider>
                     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-                        <Button
-                            fullWidth
-                            variant="outlined"
-                            onClick={() => alert('Sign up with Google is not implemented yet')}
-                            startIcon={<GoogleIcon />}
-                        >
-                            Sign up with Google
-                        </Button>
-                        <Button
-                            fullWidth
-                            variant="outlined"
-                            onClick={() => alert('Sign up with Facebook is not implemented yet')}
-                            startIcon={<FacebookIcon />}
-                        >
-                            Sign up with Facebook
-                        </Button>
                         <Typography sx={{ textAlign: 'center' }}>
                             Already have an account?{' '}
                             <Link

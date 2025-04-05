@@ -73,7 +73,6 @@ export const calculateAngles = (keypoints) => {
 
   for (const joint of angleJoints) {
     const [aIdx, bIdx, cIdx] = joint.indices;
-
     const a = keypoints[aIdx];
     const b = keypoints[bIdx];
     const c = keypoints[cIdx];
@@ -85,12 +84,12 @@ export const calculateAngles = (keypoints) => {
       console.warn(`Cannot calculate ${joint.name} angle - missing keypoints or low confidence`);
     }
   }
+  console.log("Calculated angles Object :",Object.keys(angles));
 
   if (Object.keys(angles).length === 0) {
     console.error("Failed to calculate any pose angles");
     return null;
   }
-
   return angles;
 };
 

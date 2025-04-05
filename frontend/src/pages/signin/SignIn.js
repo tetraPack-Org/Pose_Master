@@ -111,7 +111,6 @@ export default function SignIn({ onLogin, onToggleToSignup, ...props }) {
             <ColorModeSelect sx={{ position: 'fixed', top: '1rem', right: '1rem' }} />
             <SignInContainer direction="column" justifyContent="space-between">
                 <Card variant="outlined">
-                    <SitemarkIcon />
                     <Typography
                         component="h1"
                         variant="h4"
@@ -167,22 +166,6 @@ export default function SignIn({ onLogin, onToggleToSignup, ...props }) {
                         <Typography sx={{ color: 'text.secondary' }}>or</Typography>
                     </Divider>
                     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-                        <Button
-                            fullWidth
-                            variant="outlined"
-                            onClick={() => alert('Sign in with Google is not implemented yet')}
-                            startIcon={<GoogleIcon />}
-                        >
-                            Sign in with Google
-                        </Button>
-                        <Button
-                            fullWidth
-                            variant="outlined"
-                            onClick={() => alert('Sign in with Facebook is not implemented yet')}
-                            startIcon={<FacebookIcon />}
-                        >
-                            Sign in with Facebook
-                        </Button>
                         <Typography sx={{ textAlign: 'center' }}>
                             Don't have an account?{' '}
                             <Link

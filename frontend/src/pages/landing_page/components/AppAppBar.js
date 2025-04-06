@@ -12,7 +12,6 @@ import Drawer from "@mui/material/Drawer";
 import MenuIcon from "@mui/icons-material/Menu";
 import CloseRoundedIcon from "@mui/icons-material/CloseRounded";
 import ColorModeIconDropdown from "../../../shared-theme/ColorModeIconDropdown";
-import Sitemark from "./SitemarkIcon";
 
 const StyledToolbar = styled(Toolbar)(({ theme }) => ({
   display: "flex",
@@ -30,11 +29,26 @@ const StyledToolbar = styled(Toolbar)(({ theme }) => ({
   padding: "8px 12px",
 }));
 
-export default function AppAppBar(props) {
+export default function AppAppBar({
+  setAuthMode,
+  isLoggedIn,
+  username,
+  onLogout,
+}) {
   const [open, setOpen] = React.useState(false);
 
   const toggleDrawer = (newOpen) => () => {
     setOpen(newOpen);
+  };
+
+  const handleSignIn = () => {
+    setAuthMode("signin");
+    setOpen(false);
+  };
+
+  const handleSignUp = () => {
+    setAuthMode("signup");
+    setOpen(false);
   };
 
   const scrollToSection = (sectionId) => {
@@ -68,8 +82,7 @@ export default function AppAppBar(props) {
           <Box
             sx={{ flexGrow: 1, display: "flex", alignItems: "center", px: 0 }}
           >
-        
-            <Box sx={{ display: { xs: "none", md: "flex" , } }}>
+            <Box sx={{ display: { xs: "none", md: "flex" } }}>
               <Button
                 variant="text"
                 color="info"
@@ -112,22 +125,35 @@ export default function AppAppBar(props) {
               alignItems: "center",
             }}
           >
-            <Button
-              color="primary"
-              variant="text"
-              size="small"
-              onClick={props.onSignIn}
-            >
-              Sign in
-            </Button>
-            <Button
-              color="primary"
-              variant="contained"
-              size="small"
-              onClick={props.onSignUp}
-            >
-              Sign up
-            </Button>
+            {isLoggedIn ? (
+              <Button
+                color="primary"
+                variant="text"
+                size="small"
+                onClick={onLogout}
+              >
+                Logout ({username})
+              </Button>
+            ) : (
+              <>
+                <Button
+                  color="primary"
+                  variant="text"
+                  size="small"
+                  onClick={handleSignIn}
+                >
+                  Sign in
+                </Button>
+                <Button
+                  color="primary"
+                  variant="contained"
+                  size="small"
+                  onClick={handleSignUp}
+                >
+                  Sign up
+                </Button>
+              </>
+            )}
             <ColorModeIconDropdown />
           </Box>
           <Box sx={{ display: { xs: "flex", md: "none" }, gap: 1 }}>
@@ -168,26 +194,41 @@ export default function AppAppBar(props) {
                 </MenuItem>
                 <MenuItem onClick={() => scrollToSection("faq")}>FAQ</MenuItem>
                 <Divider sx={{ my: 3 }} />
-                <MenuItem>
-                  <Button
-                    color="primary"
-                    variant="contained"
-                    fullWidth
-                    onClick={props.onSignUp}
-                  >
-                    Sign up
-                  </Button>
-                </MenuItem>
-                <MenuItem>
-                  <Button
-                    color="primary"
-                    variant="outlined"
-                    fullWidth
-                    onClick={props.onSignIn}
-                  >
-                    Sign in
-                  </Button>
-                </MenuItem>
+                {isLoggedIn ? (
+                  <MenuItem>
+                    <Button
+                      color="primary"
+                      variant="outlined"
+                      fullWidth
+                      onClick={onLogout}
+                    >
+                      Logout ({username})
+                    </Button>
+                  </MenuItem>
+                ) : (
+                  <>
+                    <MenuItem>
+                      <Button
+                        color="primary"
+                        variant="contained"
+                        fullWidth
+                        onClick={handleSignUp}
+                      >
+                        Sign up
+                      </Button>
+                    </MenuItem>
+                    <MenuItem>
+                      <Button
+                        color="primary"
+                        variant="outlined"
+                        fullWidth
+                        onClick={handleSignIn}
+                      >
+                        Sign in
+                      </Button>
+                    </MenuItem>
+                  </>
+                )}
               </Box>
             </Drawer>
           </Box>

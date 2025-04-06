@@ -895,8 +895,17 @@ import LandingPage from "./pages/landing_page/LandingPage";
 import LinearProgress from "@mui/material/LinearProgress";
 
 const socket = io("https://fit-align.onrender.com", {
-  transports: ["websocket"],
+  transports: ["websocket", "polling"], // Allow fallback to polling
   withCredentials: true,
+  extraHeaders: {
+    "Access-Control-Allow-Origin": "*",
+  },
+  cors: {
+    origin: "https://fit-align.onrender.com",
+    methods: ["GET", "POST"],
+    allowedHeaders: ["Content-Type", "Authorization"],
+    credentials: true,
+  },
 });
 
 function App() {

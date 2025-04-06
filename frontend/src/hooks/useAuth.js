@@ -1,5 +1,5 @@
-import { useState, useEffect } from 'react';
-import axios from 'axios';
+import { useState, useEffect } from "react";
+import axios from "axios";
 
 export function useAuth() {
   const [user, setUser] = useState(null);
@@ -12,9 +12,12 @@ export function useAuth() {
 
   const fetchUser = async () => {
     try {
-      const res = await axios.get("http://localhost:4000/api/auth/me", {
-        withCredentials: true,
-      });
+      const res = await axios.get(
+        "https://fit-align.onrender.com/api/auth/me",
+        {
+          withCredentials: true,
+        }
+      );
       setUser(res.data);
       setRole(res.data.role);
     } catch (error) {
@@ -25,7 +28,7 @@ export function useAuth() {
   const handleSignup = async (username, password, role) => {
     try {
       await axios.post(
-        "http://localhost:4000/api/auth/signup",
+        "https://fit-align.onrender.com/api/auth/signup",
         { username, password, role },
         { withCredentials: true }
       );
@@ -33,28 +36,32 @@ export function useAuth() {
       setAuthMode("signin");
     } catch (error) {
       console.error("Signup failed", error);
-      alert("Signup failed: " + (error.response?.data?.message || error.message));
+      alert(
+        "Signup failed: " + (error.response?.data?.message || error.message)
+      );
     }
   };
 
   const handleLogin = async (username, password) => {
     try {
       await axios.post(
-        "http://localhost:4000/api/auth/login",
+        "https://fit-align.onrender.com/api/auth/login",
         { username, password },
         { withCredentials: true }
       );
       await fetchUser();
     } catch (error) {
       console.error("Login failed", error);
-      alert("Login failed: " + (error.response?.data?.message || error.message));
+      alert(
+        "Login failed: " + (error.response?.data?.message || error.message)
+      );
     }
   };
 
   const handleLogout = async () => {
     try {
       await axios.post(
-        "http://localhost:4000/api/auth/logout",
+        "https://fit-align.onrender.com/api/auth/logout",
         {},
         { withCredentials: true }
       );
@@ -72,6 +79,6 @@ export function useAuth() {
     setAuthMode,
     handleSignup,
     handleLogin,
-    handleLogout
+    handleLogout,
   };
 }

@@ -81,11 +81,10 @@ function EnhancedMentorForm({ roomId, mentorId, onSubmission, socket }) {
     for (const [key, value] of formData.entries()) {
       console.log(key, value);
     }
-    
 
     try {
       await axios.post(
-        "http://localhost:4000/api/upload/mentorforms",
+        "https://fit-align.onrender.com/api/upload/mentorforms",
         formData,
         {
           // headers: {
@@ -98,7 +97,7 @@ function EnhancedMentorForm({ roomId, mentorId, onSubmission, socket }) {
       setSubmitted(true);
 
       const galleryRes = await axios.get(
-        "http://localhost:4000/api/upload/mentorforms/get",
+        "https://fit-align.onrender.com/api/upload/mentorforms/get",
         {
           params: { roomId, mentor: mentorId },
           withCredentials: true,
@@ -281,7 +280,6 @@ function EnhancedMentorForm({ roomId, mentorId, onSubmission, socket }) {
                       <ReactQuill
                         value={content.text}
                         onChange={(value) => handleTextChange(index, value)}
-                        
                         placeholder="Describe the yoga pose and provide instructions..."
                       />
                     </Box>

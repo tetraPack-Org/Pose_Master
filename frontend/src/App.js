@@ -28,7 +28,7 @@
 // import Divider from "@mui/material/Divider";
 // import ReactMarkdown from "react-markdown";
 
-// const socket = io("http://localhost:4000", { withCredentials: true });
+// const socket = io("https://fit-align.onrender.com", { withCredentials: true });
 
 // function App() {
 //   const [room, setRoom] = useState("");
@@ -63,7 +63,7 @@
 
 //       console.log(`Fetching gallery as ${role} with params:`, params);
 //       const res = await axios.get(
-//         "http://localhost:4000/api/upload/mentorforms/get",
+//         "https://fit-align.onrender.com/api/upload/mentorforms/get",
 //         {
 //           params,
 //           withCredentials: true,
@@ -223,7 +223,7 @@
 //   useEffect(() => {
 //     async function fetchUser() {
 //       try {
-//         const res = await axios.get("http://localhost:4000/api/auth/me", {
+//         const res = await axios.get("https://fit-align.onrender.com/api/auth/me", {
 //           withCredentials: true,
 //         });
 //         setUser(res.data);
@@ -238,7 +238,7 @@
 //   const handleSignup = async (username, password, role) => {
 //     try {
 //       await axios.post(
-//         "http://localhost:4000/api/auth/signup",
+//         "https://fit-align.onrender.com/api/auth/signup",
 //         { username, password, role },
 //         { withCredentials: true }
 //       );
@@ -255,11 +255,11 @@
 //   const handleLogin = async (username, password) => {
 //     try {
 //       await axios.post(
-//         "http://localhost:4000/api/auth/login",
+//         "https://fit-align.onrender.com/api/auth/login",
 //         { username, password },
 //         { withCredentials: true }
 //       );
-//       const res = await axios.get("http://localhost:4000/api/auth/me", {
+//       const res = await axios.get("https://fit-align.onrender.com/api/auth/me", {
 //         withCredentials: true,
 //       });
 //       console.log("User logged in:", res.data);
@@ -276,7 +276,7 @@
 //   const handleLogout = async () => {
 //     try {
 //       await axios.post(
-//         "http://localhost:4000/api/auth/logout",
+//         "https://fit-align.onrender.com/api/auth/logout",
 //         {},
 //         { withCredentials: true }
 //       );
@@ -293,7 +293,7 @@
 
 //   const fetchProfile = async () => {
 //     try {
-//       const res = await axios.get("http://localhost:4000/api/auth/profile", {
+//       const res = await axios.get("https://fit-align.onrender.com/api/auth/profile", {
 //         withCredentials: true,
 //       });
 //       console.log("Profile data:", res.data);
@@ -306,7 +306,7 @@
 //     try {
 //       const updatedProfile = { ...profile, userId: user.userId };
 //       const res = await axios.put(
-//         "http://localhost:4000/api/auth/profile",
+//         "https://fit-align.onrender.com/api/auth/profile",
 //         updatedProfile,
 //         { withCredentials: true }
 //       );
@@ -894,7 +894,7 @@ import AppTheme from "./shared-theme/AppTheme";
 import LandingPage from "./pages/landing_page/LandingPage";
 import LinearProgress from "@mui/material/LinearProgress";
 
-const socket = io("http://localhost:4000", { withCredentials: true });
+const socket = io("https://fit-align.onrender.com", { withCredentials: true });
 
 function App() {
   const [room, setRoom] = useState("");
@@ -938,7 +938,7 @@ function App() {
 
       console.log(`Fetching gallery as ${role} with params:`, params);
       const res = await axios.get(
-        "http://localhost:4000/api/upload/mentorforms/get",
+        "https://fit-align.onrender.com/api/upload/mentorforms/get",
         {
           params,
           withCredentials: true,
@@ -1013,9 +1013,12 @@ function App() {
   useEffect(() => {
     async function fetchUser() {
       try {
-        const res = await axios.get("http://localhost:4000/api/auth/me", {
-          withCredentials: true,
-        });
+        const res = await axios.get(
+          "https://fit-align.onrender.com/api/auth/me",
+          {
+            withCredentials: true,
+          }
+        );
         setUser(res.data);
         setRole(res.data.role);
       } catch (error) {
@@ -1028,7 +1031,7 @@ function App() {
   const handleSignup = async (username, password, role) => {
     try {
       await axios.post(
-        "http://localhost:4000/api/auth/signup",
+        "https://fit-align.onrender.com/api/auth/signup",
         { username, password, role },
         { withCredentials: true }
       );
@@ -1045,13 +1048,16 @@ function App() {
   const handleLogin = async (username, password) => {
     try {
       await axios.post(
-        "http://localhost:4000/api/auth/login",
+        "https://fit-align.onrender.com/api/auth/login",
         { username, password },
         { withCredentials: true }
       );
-      const res = await axios.get("http://localhost:4000/api/auth/me", {
-        withCredentials: true,
-      });
+      const res = await axios.get(
+        "https://fit-align.onrender.com/api/auth/me",
+        {
+          withCredentials: true,
+        }
+      );
       console.log("User logged in:", res.data);
       setUser(res.data);
       setRole(res.data.role);
@@ -1067,7 +1073,7 @@ function App() {
   const handleLogout = async () => {
     try {
       await axios.post(
-        "http://localhost:4000/api/auth/logout",
+        "https://fit-align.onrender.com/api/auth/logout",
         {},
         { withCredentials: true }
       );
@@ -1084,9 +1090,12 @@ function App() {
 
   const fetchProfile = async () => {
     try {
-      const res = await axios.get("http://localhost:4000/api/auth/profile", {
-        withCredentials: true,
-      });
+      const res = await axios.get(
+        "https://fit-align.onrender.com/api/auth/profile",
+        {
+          withCredentials: true,
+        }
+      );
       console.log("Profile data:", res.data);
     } catch (error) {
       console.error("Error fetching profile:", error);
@@ -1097,7 +1106,7 @@ function App() {
     try {
       const updatedProfile = { ...profile, userId: user.userId };
       const res = await axios.put(
-        "http://localhost:4000/api/auth/profile",
+        "https://fit-align.onrender.com/api/auth/profile",
         updatedProfile,
         { withCredentials: true }
       );

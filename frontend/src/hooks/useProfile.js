@@ -6,7 +6,7 @@ export function useProfile(user) {
 
   const fetchProfile = async () => {
     try {
-      const res = await axios.get("http://localhost:4000/api/auth/profile", {
+      const res = await axios.get("https://fit-align.onrender.com/api/auth/profile", {
         withCredentials: true,
       });
       console.log("Profile data:", res.data);
@@ -20,7 +20,7 @@ export function useProfile(user) {
     try {
       const updatedProfile = { ...profile, userId: user?.userId };
       const res = await axios.put(
-        "http://localhost:4000/api/auth/profile",
+        "https://fit-align.onrender.com/api/auth/profile",
         updatedProfile,
         { withCredentials: true }
       );

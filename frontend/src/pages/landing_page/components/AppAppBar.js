@@ -87,6 +87,18 @@ export default function AppAppBar({
                 variant="text"
                 color="info"
                 size="small"
+                sx={{
+                  color: "#4299E1 90%",
+                  backgroundColor: "transparent",
+                }}
+                onClick={() => scrollToSection("features")}
+              >
+                FitAlign
+              </Button>
+              <Button
+                variant="text"
+                color="info"
+                size="small"
                 onClick={() => scrollToSection("features")}
               >
                 Features

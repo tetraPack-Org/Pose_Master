@@ -894,7 +894,10 @@ import AppTheme from "./shared-theme/AppTheme";
 import LandingPage from "./pages/landing_page/LandingPage";
 import LinearProgress from "@mui/material/LinearProgress";
 
-const socket = io("https://fit-align.onrender.com", { withCredentials: true });
+const socket = io("https://fit-align.onrender.com", {
+  transports: ["websocket"],
+  withCredentials: true,
+});
 
 function App() {
   const [room, setRoom] = useState("");

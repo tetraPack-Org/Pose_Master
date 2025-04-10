@@ -78,7 +78,10 @@ export const getCurrentUser = async (req, res) => {
   try {
     const token = req.cookies.token;
     console.log("request", req.cookies);
-    if (!token) return res.status(401).json({ error: "Not authenticated" });
+    if (!token) return res.status(401).json({ error: "Not authenticated",
+      token: token,
+      cookies: req.cookies,
+     });
 
     const decoded = jwt.verify(token, process.env.SECRET_KEY);
     const user = await User.findById(decoded.userId);

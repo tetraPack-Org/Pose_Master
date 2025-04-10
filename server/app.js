@@ -16,7 +16,7 @@ app.use(express.json());
 app.use(cookieParser());
 app.use(
   cors({
-    origin: "https://fit-align-fy6z0rc9d-abhiram162105s-projects.vercel.app/", // your frontend origin
+    origin: "http://localhost:3000", // your frontend origin
     credentials: true,
   })
 );
@@ -35,7 +35,7 @@ dbConnect();
 const server = http.createServer(app);
 const io = new Server(server, {
   cors: {
-    origin: "https://fit-align-fy6z0rc9d-abhiram162105s-projects.vercel.app/",
+    origin: "http://localhost:3000",
     methods: ["GET", "POST"],
     credentials: true,
   },

@@ -18,8 +18,14 @@ export const signup = async (req, res) => {
     const hashedPassword = await bcrypt.hash(password, 10);
     const user = new User({ username, password: hashedPassword, role });
     await user.save();
-
-    res.status(201).json({ message: "User created successfully" });
+    const userCheck = await User.findOne({ username });
+    res.status(201).json({ message: "User created successfully",
+      user: {
+        username: userCheck.username,
+        role: userCheck.role,
+        userId: userCheck._id,
+      },
+     });
   } catch (error) {
     console.error("Signup error:", error);
     res.status(500).json({ error: "Error creating user" });

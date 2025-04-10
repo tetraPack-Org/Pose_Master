@@ -67,6 +67,7 @@ export const login = async (req, res) => {
         role: user.role,
         userId: user._id,
       },
+      cookies: req.cookies,
     });
   } catch (error) {
     console.error("Login error:", error);

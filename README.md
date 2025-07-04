@@ -1,10 +1,5 @@
 # Pose Master - AI Yoga Posture Assistant
-
-<div align="center">
-  <img src="https://i.imgur.com/your-logo-image.png" alt="Pose Master Logo" width="150"/>
-</div>
-
-<br/>
+--
 
 ## 1. What is Pose Master?
 
@@ -123,4 +118,16 @@ _You can add a link to your deployed application here._
 
 ## 7. Screenshots
 
-![Landing Page]([/Pose_Master/gallery/landingPage.png](https://github.com/tetraPack-Org/Pose_Master/blob/Head_Branch/gallery/landingPage.png))
+![Landing Page](gallery/landingPage.png)
+
+---
+
+![Diet Chart](gallery/dietchart.png)
+
+---
+
+![Diet Plan](gallery/dietPlan.png)
+
+---
+
+![Presentation](gallery/Presentation.png)

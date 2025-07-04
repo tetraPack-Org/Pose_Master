@@ -47,7 +47,6 @@ const DirectPoseAnalysis = ({ imageUrl, room, userId }) => {
   const [hasAchievedPose, setHasAchievedPose] = useState(false);
   const [userAchievements, setUserAchievements] = useState(0);
 
-
   const socket = useSocket();
 
   // Refs
@@ -112,17 +111,17 @@ const DirectPoseAnalysis = ({ imageUrl, room, userId }) => {
       };
     }
   };
-useEffect(() => {
-  if (hasAchievedPose) {
-    setUserAchievements((prev) => prev + 1);
-    // Store achievement in localStorage
-    const achievements = JSON.parse(
-      localStorage.getItem("poseAchievements") || "{}"
-    );
-    achievements[userId] = (achievements[userId] || 0) + 1;
-    localStorage.setItem("poseAchievements", JSON.stringify(achievements));
-  }
-}, [hasAchievedPose, userId]);
+  useEffect(() => {
+    if (hasAchievedPose) {
+      setUserAchievements((prev) => prev + 1);
+      // Store achievement in localStorage
+      const achievements = JSON.parse(
+        localStorage.getItem("poseAchievements") || "{}"
+      );
+      achievements[userId] = (achievements[userId] || 0) + 1;
+      localStorage.setItem("poseAchievements", JSON.stringify(achievements));
+    }
+  }, [hasAchievedPose, userId]);
 
   // Model loading effect
   useEffect(() => {
@@ -486,8 +485,8 @@ useEffect(() => {
                 similarityScore > 92
                   ? "#00FF00"
                   : similarityScore > 80
-                  ? "#FFFF00"
-                  : "#FF0000";
+                    ? "#FFFF00"
+                    : "#FF0000";
               ctx.textAlign = "left";
               ctx.fillText(
                 `Similarity: ${similarityScore.toFixed(1)}%`,
@@ -552,18 +551,42 @@ useEffect(() => {
             throw new Error("Canvas reference is null");
           }
 
-          // Set canvas dimensions
-          canvas.width = img.width;
-          canvas.height = img.height;
+          // Get original dimensions
+          const originalWidth = img.naturalWidth;
+          const originalHeight = img.naturalHeight;
+
+          // Set maximum dimensions while keeping aspect ratio
+          const MAX_WIDTH = 400;  // Reduced from original size
+          const MAX_HEIGHT = 400; // Reduced from original size
+
+          // Calculate scaling factor
+          let width = originalWidth;
+          let height = originalHeight;
+
+          if (originalWidth > MAX_WIDTH || originalHeight > MAX_HEIGHT) {
+            const widthRatio = MAX_WIDTH / originalWidth;
+            const heightRatio = MAX_HEIGHT / originalHeight;
+
+            // Use the smaller ratio to ensure both dimensions fit
+            const ratio = Math.min(widthRatio, heightRatio);
+
+            // Apply the ratio to both dimensions
+            width = Math.floor(originalWidth * ratio);
+            height = Math.floor(originalHeight * ratio);
+          }
+
+          // Set the canvas size to the new dimensions
+          canvas.width = width;
+          canvas.height = height;
 
           const ctx = canvas.getContext("2d");
           if (!ctx) {
             throw new Error("Failed to get canvas context");
           }
 
-          // Draw image and detect pose
-          ctx.clearRect(0, 0, canvas.width, canvas.height);
-          ctx.drawImage(img, 0, 0);
+          // Draw image and detect pose at the new size
+          ctx.clearRect(0, 0, width, height);
+          ctx.drawImage(img, 0, 0, width, height);
 
           const poses = await detector.estimatePoses(img);
           if (!poses?.length) {
@@ -680,13 +703,12 @@ useEffect(() => {
           {feedback.map((item, index) => (
             <div
               key={index}
-              className={`p-2 rounded ${
-                item.severity === "success"
-                  ? "bg-green-100 text-green-800"
-                  : item.severity === "warning"
+              className={`p-2 rounded ${item.severity === "success"
+                ? "bg-green-100 text-green-800"
+                : item.severity === "warning"
                   ? "bg-yellow-100 text-yellow-800"
                   : "bg-red-100 text-red-800"
-              }`}
+                }`}
             >
               <span className="font-medium">
                 {KEYPOINT_NAMES[item.joint] || item.joint}:
@@ -731,8 +753,9 @@ useEffect(() => {
           <p className="text-blue-600">Loading pose detection model...</p>
         </div>
       ) : (
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <div className="bg-white rounded-lg shadow p-4">
+        <div className="flex flex-col md:flex-row gap-4">
+          {/* Reference Image Section */}
+          <div className="bg-white rounded-lg shadow p-4 flex-1">
             <h2 className="text-xl font-semibold mb-2">Reference Pose</h2>
             <div className="border rounded-lg overflow-hidden mb-4">
               <canvas
@@ -741,7 +764,8 @@ useEffect(() => {
                 style={{
                   display: "block",
                   maxWidth: "100%",
-                  height: "auto",
+                  height: "auto",  // Let height adjust automatically based on width
+                  margin: "0 auto"
                 }}
               />
             </div>
@@ -758,19 +782,18 @@ useEffect(() => {
             {imagePoseData && renderAngleData(imagePoseData)}
           </div>
 
-          <div className="bg-white rounded-lg shadow p-4">
+          {/* Live Comparison Section */}
+          <div className="bg-white rounded-lg shadow p-4 flex-1">
             <div className="flex justify-between items-center mb-2">
               <h2 className="text-xl font-semibold">Live Comparison</h2>
               <button
                 onClick={toggleWebcam}
                 disabled={!imagePoseData}
-                className={`px-4 py-1 rounded ${
-                  isWebcamActive
-                    ? "bg-red-500 hover:bg-red-600"
-                    : "bg-green-500 hover:bg-green-600"
-                } text-white ${
-                  !imagePoseData ? "opacity-50 cursor-not-allowed" : ""
-                }`}
+                className={`px-4 py-1 rounded ${isWebcamActive
+                  ? "bg-red-500 hover:bg-red-600"
+                  : "bg-green-500 hover:bg-green-600"
+                  } text-white ${!imagePoseData ? "opacity-50 cursor-not-allowed" : ""
+                  }`}
               >
                 {isWebcamActive ? "Stop Camera" : "Start Camera"}
               </button>
@@ -820,13 +843,12 @@ useEffect(() => {
                       </h3>
                       <div className="w-full bg-gray-200 rounded-full h-4">
                         <div
-                          className={`h-4 rounded-full ${
-                            similarity > 80
-                              ? "bg-green-500"
-                              : similarity > 60
+                          className={`h-4 rounded-full ${similarity > 80
+                            ? "bg-green-500"
+                            : similarity > 60
                               ? "bg-yellow-500"
                               : "bg-red-500"
-                          }`}
+                            }`}
                           style={{ width: `${similarity}%` }}
                         />
                       </div>
@@ -845,7 +867,6 @@ useEffect(() => {
                         </div>
                       )}
                     </div>
-                    {renderAngleData(webcamPoseData)}
                     {renderFeedback(poseFeedback)}
                   </div>
                 )}

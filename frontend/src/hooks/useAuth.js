@@ -13,7 +13,7 @@ export function useAuth() {
   const fetchUser = async () => {
     try {
       const res = await axios.get(
-        "https://fit-align.onrender.com/api/auth/me",
+        "http://localhost:4000/api/auth/me",
         {
           withCredentials: true,
         }
@@ -28,7 +28,7 @@ export function useAuth() {
   const handleSignup = async (username, password, role) => {
     try {
       await axios.post(
-        "https://fit-align.onrender.com/api/auth/signup",
+        "http://localhost:4000/api/auth/signup",
         { username, password, role },
         { withCredentials: true }
       );
@@ -45,7 +45,7 @@ export function useAuth() {
   const handleLogin = async (username, password) => {
     try {
       await axios.post(
-        "https://fit-align.onrender.com/api/auth/login",
+        "http://localhost:4000/api/auth/login",
         { username, password },
         { withCredentials: true }
       );
@@ -61,7 +61,7 @@ export function useAuth() {
   const handleLogout = async () => {
     try {
       await axios.post(
-        "https://fit-align.onrender.com/api/auth/logout",
+        "http://localhost:4000/api/auth/logout",
         {},
         { withCredentials: true }
       );

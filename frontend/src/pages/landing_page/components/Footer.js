@@ -150,14 +150,14 @@ export default function Footer() {
         >
           <IconButton
             color="inherit"
-            href="https://github.com/tetraPack-Org/Pose_Master"
+            href="http://github.com/tetraPack-Org/Pose_Master"
             aria-label="GitHub"
           >
             <GitHubIcon />
           </IconButton>
           <IconButton
             color="inherit"
-            href="https://linkedin.com"
+            href="http://linkedin.com"
             aria-label="LinkedIn"
           >
             <LinkedInIcon />

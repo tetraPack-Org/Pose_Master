@@ -84,7 +84,7 @@ function EnhancedMentorForm({ roomId, mentorId, onSubmission, socket }) {
 
     try {
       await axios.post(
-        "https://fit-align.onrender.com/api/upload/mentorforms",
+        "http://localhost:4000/api/upload/mentorforms",
         formData,
         {
           // headers: {
@@ -97,7 +97,7 @@ function EnhancedMentorForm({ roomId, mentorId, onSubmission, socket }) {
       setSubmitted(true);
 
       const galleryRes = await axios.get(
-        "https://fit-align.onrender.com/api/upload/mentorforms/get",
+        "http://localhost:4000/api/upload/mentorforms/get",
         {
           params: { roomId, mentor: mentorId },
           withCredentials: true,
@@ -124,7 +124,7 @@ function EnhancedMentorForm({ roomId, mentorId, onSubmission, socket }) {
       console.error("Error submitting mentor form:", error);
       alert(
         "Error submitting form: " +
-          (error.response?.data?.message || error.message)
+        (error.response?.data?.message || error.message)
       );
     } finally {
       setLoading(false);
@@ -274,6 +274,8 @@ function EnhancedMentorForm({ roomId, mentorId, onSubmission, socket }) {
                         "& .ql-editor": {
                           minHeight: "150px",
                           fontSize: "0.9rem",
+                          caretColor: "black",
+                          color: "black", 
                         },
                       }}
                     >
@@ -289,7 +291,7 @@ function EnhancedMentorForm({ roomId, mentorId, onSubmission, socket }) {
             </Card>
           ))}
 
-          <Box sx={{ mt: 2, display: "flex", justifyContent: "space-between" }}>
+          <Box sx={{ mt: 2, gap:4, display: "flex", justifyContent: "space-between" }}>
             <Button
               variant="outlined"
               onClick={addField}
@@ -304,7 +306,7 @@ function EnhancedMentorForm({ roomId, mentorId, onSubmission, socket }) {
               type="submit"
               disabled={loading || contents.length === 0}
               startIcon={<SendIcon />}
-              color="primary"
+              color="black"
             >
               {loading ? "Submitting..." : "Submit All Poses"}
             </Button>

@@ -1,7 +1,7 @@
 import { useEffect } from "react";
 import io from "socket.io-client";
 
-const socket = io("https://fit-align.onrender.com/", { withCredentials: true });
+const socket = io("http://localhost:4000/", { withCredentials: true });
 
 export function useSocket(setMessages, setGallery, setCurrentIndex) {
   useEffect(() => {

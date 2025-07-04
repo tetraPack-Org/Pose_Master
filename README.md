@@ -123,4 +123,4 @@ _You can add a link to your deployed application here._
 
 ## 7. Screenshots
 
-![Landing Page](/Pose_Master/gallery/landingPage.png)
+![Landing Page]([/Pose_Master/gallery/landingPage.png](https://github.com/tetraPack-Org/Pose_Master/blob/Head_Branch/gallery/landingPage.png))

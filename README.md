@@ -123,7 +123,7 @@ _You can add a link to your deployed application here._
 
 ## 7. Screenshots
 
-![Landing Page](/Pose_Master/project_gallery/Screenshot%202025-07-04%20at%204.20.45 PM.png)
-![Diet Plan](/Pose_Master/project_gallery/Screenshot%202025-07-04%20at%204.11.38 PM.png)
-![](/Pose_Master/project_gallery/Screenshot%202025-07-04%20at%204.12.51 PM.png)
-![Presentation](/Pose_Master/project_gallery/Screenshot%202025-07-04%20at%204.16.58 PM.png)
+![Landing Page](/Pose_Master/gallery/Screenshot%202025-07-04%20at%204.20.45 PM.png)
+![Diet Plan](/Pose_Master/gallery/Screenshot%202025-07-04%20at%204.11.38 PM.png)
+![](/Pose_Master/gallery/Screenshot%202025-07-04%20at%204.12.51 PM.png)
+![Presentation](/Pose_Master/gallery/Screenshot%202025-07-04%20at%204.16.58 PM.png)
